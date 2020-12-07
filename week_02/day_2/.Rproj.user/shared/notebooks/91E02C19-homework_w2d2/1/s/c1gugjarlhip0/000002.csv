@@ -1,0 +1,40 @@
+"0","glimpse(code_clan_tweets)
+"
+"1","Rows: 234"
+"1",""
+"1","
+"
+"1","Columns: 27"
+"1",""
+"1","
+"
+"1","$ tweet_id               [3m[38;5;246m<dbl>[39m[23m …
+$ user_id                [3m[38;5;246m<dbl>[39m[23m …
+$ created_at             [3m[38;5;246m<chr>[39m[23m …
+$ screen_name            [3m[38;5;246m<chr>[39m[23m …
+$ text                   [3m[38;5;246m<chr>[39m[23m …
+$ source                 [3m[38;5;246m<chr>[39m[23m …
+$ display_text_width     [3m[38;5;246m<dbl>[39m[23m …
+$ reply_to_status_id     [3m[38;5;246m<dbl>[39m[23m …
+$ reply_to_user_id       [3m[38;5;246m<dbl>[39m[23m …
+$ reply_to_screen_name   [3m[38;5;246m<chr>[39m[23m …
+$ is_quote               [3m[38;5;246m<lgl>[39m[23m …
+$ is_retweet             [3m[38;5;246m<lgl>[39m[23m …
+$ favorite_count         [3m[38;5;246m<dbl>[39m[23m …
+$ retweet_count          [3m[38;5;246m<dbl>[39m[23m …
+$ quote_count            [3m[38;5;246m<lgl>[39m[23m …
+$ reply_count            [3m[38;5;246m<lgl>[39m[23m …
+$ hashtags               [3m[38;5;246m<chr>[39m[23m …
+$ symbols                [3m[38;5;246m<lgl>[39m[23m …
+$ urls_url               [3m[38;5;246m<chr>[39m[23m …
+$ urls_t.co              [3m[38;5;246m<chr>[39m[23m …
+$ urls_expanded_url      [3m[38;5;246m<chr>[39m[23m …
+$ media_type             [3m[38;5;246m<chr>[39m[23m …
+$ retweet_source         [3m[38;5;246m<chr>[39m[23m …
+$ retweet_favorite_count [3m[38;5;246m<dbl>[39m[23m …
+$ retweet_retweet_count  [3m[38;5;246m<dbl>[39m[23m …
+$ retweet_user_id        [3m[38;5;246m<dbl>[39m[23m …
+$ retweet_location       [3m[38;5;246m<chr>[39m[23m …"
+"1",""
+"1","
+"

@@ -1,0 +1,5 @@
+"0","fraud_data <- "
+"0","  inner_join(fraudbase_data, transaction_base_data, by = c(""Transaction_ID"" = ""Transaction_ID"")) "
+"0",""
+"0","  "
+"0","  view(fraud_data)"

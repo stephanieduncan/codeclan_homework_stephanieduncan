@@ -1,0 +1,25 @@
+"0","#reading in the data"
+"0","code_clan_tweets <- read_csv(""data/code_clan_tweets.csv"")"
+"2","
+[36m──[39m [1m[1mColumn specification[1m[22m [36m──────────────[39m
+cols(
+  .default = col_character(),
+  tweet_id = [32mcol_double()[39m,
+  user_id = [32mcol_double()[39m,
+  display_text_width = [32mcol_double()[39m,
+  reply_to_status_id = [32mcol_double()[39m,
+  reply_to_user_id = [32mcol_double()[39m,
+  is_quote = [33mcol_logical()[39m,
+  is_retweet = [33mcol_logical()[39m,
+  favorite_count = [32mcol_double()[39m,
+  retweet_count = [32mcol_double()[39m,
+  quote_count = [33mcol_logical()[39m,
+  reply_count = [33mcol_logical()[39m,
+  symbols = [33mcol_logical()[39m,
+  retweet_favorite_count = [32mcol_double()[39m,
+  retweet_retweet_count = [32mcol_double()[39m,
+  retweet_user_id = [32mcol_double()[39m
+)
+[36mℹ[39m Use [38;5;235m[48;5;253m[38;5;235m[48;5;253m`spec()`[48;5;253m[38;5;235m[49m[39m for the full column specifications.
+
+"

@@ -1,0 +1,4 @@
+"0","# 2 : count total number of favourites"
+"0","codeclan_tweets %>%"
+"0","  filter(is_quote == FALSE) %>%"
+"0","  summarise(total = sum(favorite_count))"

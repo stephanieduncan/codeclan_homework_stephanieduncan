@@ -1,0 +1,25 @@
+{
+    "id": "85E84012",
+    "path": "~/codeclan_work/week_02/day_1/mini_lab2.Rmd",
+    "project_path": null,
+    "type": "r_markdown",
+    "hash": "211937996",
+    "contents": "",
+    "dirty": false,
+    "created": 1606767433161.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "chunk_output_type": "inline",
+        "cursorPosition": "26,29",
+        "scrollLine": "19"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1606774760,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1606774760216,
+    "read_only": false,
+    "read_only_alternatives": []
+}

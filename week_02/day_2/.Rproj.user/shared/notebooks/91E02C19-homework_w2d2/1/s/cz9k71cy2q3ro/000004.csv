@@ -1,0 +1,7 @@
+"0","total_favourited_tweets <-"
+"0","  code_clan_tweets %>% "
+"0","  filter(is_quote == FALSE) %>% "
+"0","  group_by(screen_name) %>% "
+"0","  summarise(total_favourited_tweets = sum(favorite_count)) "
+"2","`summarise()` ungrouping output (override with `.groups` argument)
+"

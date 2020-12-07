@@ -1,0 +1,7 @@
+"0","# 3 : summarise mean number of retweets by source platform"
+"0","codeclan_tweets %>%"
+"0","  filter(is_quote == FALSE) %>%"
+"0","  group_by(source) %>%"
+"0","  summarise(average_retweet = mean(retweet_count))"
+"2","`summarise()` ungrouping output (override with `.groups` argument)
+"

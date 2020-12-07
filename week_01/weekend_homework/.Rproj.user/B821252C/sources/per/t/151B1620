@@ -1,0 +1,23 @@
+{
+    "id": "151B1620",
+    "path": "~/codeclan_work/week_02/day_1/tidyrd.Rmd",
+    "project_path": null,
+    "type": "r_markdown",
+    "hash": "2913526289",
+    "contents": "",
+    "dirty": false,
+    "created": 1606768409236.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "chunk_output_type": "inline"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1606746797,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1606746797,
+    "read_only": false,
+    "read_only_alternatives": []
+}

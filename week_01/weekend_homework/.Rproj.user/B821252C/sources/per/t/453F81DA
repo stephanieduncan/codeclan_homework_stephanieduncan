@@ -1,0 +1,23 @@
+{
+    "id": "453F81DA",
+    "path": "~/codeclan_work/week_02/day_1/lesson_1.Rmd",
+    "project_path": null,
+    "type": "r_markdown",
+    "hash": "2471135859",
+    "contents": "",
+    "dirty": false,
+    "created": 1606767530993.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "chunk_output_type": "inline"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1606737125,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1606737125,
+    "read_only": false,
+    "read_only_alternatives": []
+}

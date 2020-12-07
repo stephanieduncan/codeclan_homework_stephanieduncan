@@ -1,0 +1,32 @@
+{
+    "id": "42926C2C",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1606774097629.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "expression": "hat_data",
+        "caption": "hat_data",
+        "totalObservations": "100",
+        "displayedObservations": "100",
+        "variables": "6",
+        "cacheKey": "AF089354",
+        "object": "hat_data",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=hat_data&cache_key=AF089354&max_cols=50",
+        "preview": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 4481873702,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1606774097629,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,206 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+# 1 Question 1 - Load in the dataset and have a look at it. What are the dimensions, variable types, variable names, etc.? 
+  
+starbucks_data <- 
+read_csv("6_homework_dplyr/data/starbucks_drinkMenu_expanded.csv")
+```
+
+```{r}
+head(starbucks_data)
+```
+
+```{r}
+dim(starbucks_data)
+```
+
+```{r}
+names(starbucks_data)
+```
+
+```{r}
+class(starbucks_data)
+```
+
+```{r}
+view(starbucks_data)
+```
+
+```{r}
+# 2 Question 2 - Let’s first investigate the calories of different drinks. Select the variables Beverage_category, Beverage, Beverage prep and Calories from your data. Since we are interested in the calorie content, check if there are any NA values in the data, and drop them if there are.
+
+calories_of_drinks <- select(starbucks_data, Beverage_category, Beverage, Beverage_prep, Calories)
+```
+
+```{r}
+view(calories_of_drinks)
+```
+
+```{r}
+glimpse(starbucks_data)
+```
+
+```{r}
+starbucks_data
+```
+
+
+```{r}
+# 3 Question 3 - Create a new variable (column) called calorie_diff, which stores the difference between 135 calories (135 calories = 10 cubes of sugar!) and the calories in each drink. (hint: you’ll want to subtract the calories from 135 to see which drink have more or less than 10 cups of sugar). 
+
+
+mutate(starbucks_data, calorie_diff = 135 - Calories)
+```
+
+```{r}
+# 4 Question 4 - Summarise the mean number of calories in each beverage_category. Which 3 drinks have the most calories? Which 3 drinks have the least? Write a small summary of your findings.
+
+mean_number_of_calories <- starbucks_data %>% 
+  summarise(mean_calories = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories
+```
+
+```{r}
+mean_number_of_calories_coffee <- starbucks_data %>% 
+  summarise(mean_calories_coffee = mean(Calories, na.rm = TRUE & Beverage_category == "Coffee"))
+
+mean_number_of_calories_coffee
+
+```
+```{r}
+Coffee <- filter(starbucks_data, Beverage_category == "Coffee")
+
+```
+
+```{r}
+mean_number_of_calories_coffee <- Coffee %>% 
+  summarise(mean_calories_coffee = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories_coffee
+```
+
+```{r}
+Classic_Espresso_Drinks <- filter(starbucks_data, Beverage_category == "Classic Espresso Drinks")
+
+Classic_Espresso_Drinks
+
+
+
+```
+
+
+```{r}
+mean_number_of_calories_classic <- Classic_Espresso_Drinks %>% 
+  summarise(mean_calories_classic = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories_classic
+```
+ 
+```{r}
+Signature_Espresso_Drinks <- filter(starbucks_data, Beverage_category == "Signature Espresso Drinks")
+
+Signature_Espresso_Drinks
+```
+ 
+```{r}
+mean_number_of_calories_signature <- Signature_Espresso_Drinks %>% 
+  summarise(mean_calories_signature = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories_signature
+```
+
+```{r}
+Tazo_Drink <- filter(starbucks_data, Beverage_category == "Tazo® Tea Drinks")
+
+Tazo_Drink
+```
+```{r}
+mean_number_of_calories_tazo <- Tazo_Drink %>% 
+  summarise(mean_calories_tazo = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories_tazo
+```
+
+```{r}
+Shaken_Iced_Beverages <- filter(starbucks_data, Beverage_category == "Shaken Iced Beverages")
+
+Shaken_Iced_Beverages
+```
+```{r}
+mean_number_of_calories_shaken <- Shaken_Iced_Beverages %>% 
+  summarise(mean_calories_shaken = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories_shaken
+```
+
+```{r}
+Smoothies_data <- filter(starbucks_data, Beverage_category == "Smoothies")
+
+Smoothies_data
+```
+
+```{r}
+mean_number_of_calories_smoothies <- Smoothies_data %>% 
+  summarise(mean_calories_smoothies = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories_smoothies
+```
+
+
+```{r}
+Frappuccino_data <- filter(starbucks_data, Beverage_category == "Frappuccino® Blended Coffee")
+
+Frappuccino_data
+```
+```{r}
+mean_number_of_calories_frappuccino <- Frappuccino_data %>% 
+  summarise(mean_calories_frappuccino = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories_frappuccino
+```
+```{r}
+Frappuccino_light_blended_data <- filter(starbucks_data, Beverage_category == "Frappuccino® Light Blended Coffee")
+
+Frappuccino_light_blended_data
+```
+
+```{r}
+mean_number_of_calories_frappuccino_light_blended <- Frappuccino_light_blended_data %>% 
+  summarise(mean_calories_frappuccino_light_blended = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories_frappuccino_light_blended
+```
+
+```{r}
+Frappuccino_creme_data <- filter(starbucks_data, Beverage_category == "Frappuccino® Blended Crème")
+
+Frappuccino_creme_data
+```
+```{r}
+mean_number_of_calories_frappuccino_creme <- Frappuccino_creme_data %>% 
+  summarise(mean_calories_frappuccino_creme = mean(Calories, na.rm = TRUE))
+
+mean_number_of_calories_frappuccino_creme
+```
+
+```{r}
+# 3 Drinks with the most calories are Smoothie (282), Frappuccino Blended (277) & Signature (250)
+
+# 3 Drinks with the least calories are Classic (144), Shaken (114), Coffee (4.25)
+```
+
+```{r}
+# 7 Question 7 - Which is the best type of coffee drink to get if you’re worried about consuming too many calories?
+
+# Answer = Coffee at 4.25 calories
+```
+

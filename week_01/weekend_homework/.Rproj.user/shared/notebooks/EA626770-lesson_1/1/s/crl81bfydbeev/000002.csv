@@ -1,0 +1,7 @@
+"0","```r
+bins_rows(customers, past_customers) %>%  view
+
+```"
+"1","Error in bins_rows(customers, past_customers) : 
+  could not find function \"bins_rows\"
+"

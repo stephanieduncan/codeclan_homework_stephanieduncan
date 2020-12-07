@@ -1,0 +1,7 @@
+"0","the_little_mermaid <-"
+"0","inner_join(movies, roles, by = c(""id"" = ""movie_id"")) %>% "
+"0","  inner_join(actors, by = c(""actor_id"" = ""id"")) %>% "
+"0","  filter(name == ""Little Mermaid, The"")  "
+"2","Error in inner_join(movies, roles, by = c(id = ""movie_id"")) : 
+  object 'movies' not found
+"

@@ -1,0 +1,372 @@
+---
+title: "`dplyr` Weekend Homework"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
+```
+<br>
+
+
+
+As this is your first weekend homework, here are some tips: 
+
+* Try to schedule some time in your weekend to work on the homework so it's not suddenly Monday morning and you haven't gotten started yet (it happens).
+* Remember that the weekend homework is for your learning, so try to use it as an opportunity to apply and consolidate everything you've learned in the week.
+* Also use it as an opportunity to spend a bit more time making your code readable and reproducible, by practising commenting and writing some text around your steps and findings. You will thank yourself later! 
+  * This will be especially useful for this specific weekend homework as it's very open-ended and you will eventually forget your own thought process
+* A bit obvious, but don't spend your entire weekend working on the homework! Remember to spend time doing things you enjoy and rest up ahead of the following week.
+
+The data for this weekend homework is scraped from Goodreads (a website all about books) and made publicly available on Kaggle. You can read more about the data [here](https://www.kaggle.com/jealousleopard/goodreadsbooks).
+
+# MVP
+
+### First steps
+
+Load necessary packages and read in `books.csv`. Investigate dimensions, variables, missing values - you know the drill!
+
+### Up to you
+
+Now it's up to you... For this weekend homework there will be no specific tasks, just you and this dataset! Using everything you've learned this week, try to describe/summarise at least 5 things about this dataset - using R and the tidyverse of course! Feel free to find and use new functions if there is something that the tidyverse doesn't offer, but do try to use this homework to apply what you have learned this week. Be prepared to share one of your findings on Monday!
+
+### Remember
+
+Before you submit, go through your weekend homework and make sure your code is following best practices as laid out in the `coding_best_practice` lesson.
+
+```{r}
+library(tidyverse)
+library(dplyr)
+
+
+
+```
+```{r}
+# reading in the data and viewing
+books_data <- read.csv("data/books.csv")
+
+view(books_data)
+```
+
+```{r}
+#reading in the first 10 rows
+head(books_data, 10)
+```
+```{r}
+#reading in the last 10 rows
+tail(books_data, 10)
+```
+
+```{r}
+# investigating titles in table
+names(books_data)
+```
+
+```{r}
+#Investigating dimensions (no. of rows & columns)
+dim(books_data)
+```
+
+
+```{r}
+# a quick overview of the data
+glimpse(books_data)
+```
+```{r}
+#no. of rows
+nrow(books_data)
+```
+
+```{r}
+#no. of columns
+ncol(books_data)
+```
+
+```{r}
+books_data
+```
+```{r}
+#cleaning data types
+books_data_cleaned <- bookID_cleaned %>% 
+  mutate(bookID = as.numeric(as.character(bookID))) %>% 
+  mutate(title = as.character(title)) %>% 
+  mutate(authors = as.character((authors))) %>% 
+  mutate(average_rating = as.numeric(as.character(average_rating))) %>% 
+  mutate(num_pages = as.numeric(as.character(num_pages))) %>% 
+  mutate(ratings_count = as.numeric(ratings_count)) %>% 
+   mutate(text_reviews_count = as.numeric(text_reviews_count)) %>% 
+  mutate(publication_date = as.character.Date(publication_date)) %>% 
+  mutate(publisher = as.character(publisher)) %>% 
+    mutate(publication_date = as.character.Date(publication_date,format = "%m-%d-%Y")) 
+
+
+
+books_data_cleaned
+
+
+```
+
+
+Checking for missing values. There are blanks and NA values.
+
+
+```{r}
+books_data_cleaned %>% 
+  summarise(count = sum(is.na(bookID)))
+```
+```{r}
+books_data_cleaned %>% 
+  summarise(count = sum(is.na(title)))
+```
+```{r}
+books_data_cleaned %>% 
+  summarise(count = sum(is.na(authors)))
+```
+```{r}
+# checking if there are books with a missing average rating
+books_data_cleaned %>% 
+  summarise(count = sum(is.na(average_rating)))
+
+
+```
+```{r}
+books_data_cleaned %>% 
+  summarise(count = sum(is.na(isbn)))
+```
+```{r}
+books_data_cleaned %>% 
+  summarise(count = sum(is.na(text_reviews_count)))
+```
+```{r}
+books_data_cleaned %>% 
+  summarise(count = sum(is.na(publication_date)))
+```
+
+
+```{r}
+# checking if there are any missing values in ratings counts
+books_data_cleaned %>% 
+  summarise(count = sum(is.na(ratings_count)))
+```
+
+```{r}
+# checking the data for the missing values in ratings counts
+books_data %>%
+  select(bookID:publisher) %>%
+  filter(is.na(ratings_count))
+
+# From the table, it can be seen that these 4 rows have been entered incorrectly as bookID is text and not a numeric value
+
+
+```
+
+
+```{r}
+#removing the above 4 rows which are redundant rows as no information available and publisher has been incorrectly entered into bookID column
+bookID_cleaned <-
+books_data %>%
+  select(bookID:publisher) %>%
+  filter(!is.na(ratings_count))
+
+#checking 4 rows have been removed
+bookID_cleaned
+
+```
+
+
+```{r}
+# show selected columns for books with no pages
+books_no_pages <- books_data_cleaned %>% 
+  select(bookID, title, authors, num_pages, publisher) %>% 
+  filter(num_pages ==0)
+
+books_no_pages
+
+view(books_no_pages)
+
+# Many books without pages are audio books
+
+```
+
+```{r}
+# finding the no. of books with no pages
+count_books_no_pages <-
+books_no_pages %>% 
+  summarise(count = sum(num_pages == 0))
+
+count_books_no_pages
+```
+
+
+
+
+```{r}
+# checking for no reviews (alternative method)
+ratings_count_cleaned <- bookID_cleaned %>%
+  mutate(ratings_count = na_if(ratings_count, "na")) %>%
+  mutate(ratings_count = na_if(ratings_count, " ")) %>% 
+  mutate(ratings_count = na_if(ratings_count, "N/A"))
+
+# check if no reviews data have been removed
+ratings_count_cleaned %>%
+  filter(is.na(ratings_count))
+
+view(ratings_count_cleaned)
+```
+
+```{r}
+#check for number of books with a review rating of 0
+count_books_no_reviews <- bookID_cleaned %>% 
+  filter(ratings_count == 0) %>% 
+  summarise(count = sum(ratings_count ==0))
+
+count_books_no_reviews 
+
+
+
+```
+
+
+```{r}
+#check for books with an average rating of 0, viewing selected columns only
+books_no_ave_rating <- books_data_cleaned %>% 
+  mutate(average_rating = as.numeric(average_rating)) %>% 
+  select(title, authors, average_rating, num_pages, ratings_count, text_reviews_count, publication_date) %>% 
+  filter(average_rating == 0)
+
+books_no_ave_rating 
+
+view(books_no_ave_rating)
+
+# book Day & Night has no rating count but 1 text review recorded.
+
+```
+
+
+```{r}
+#Check for books with no rating count or text reviews to confirm if these books have no average rating. Viewing selected columns only
+books_no_reviews <- books_data_cleaned %>% 
+  select(title, authors, average_rating, num_pages, ratings_count, text_reviews_count, publication_date) %>% 
+  filter(ratings_count == 0)
+
+books_no_reviews 
+
+view(books_no_reviews)
+
+# There are books with an average rating but no review count or text reviews :?
+```
+
+```{r}
+glimpse(books_data_cleaned)
+```
+
+
+```{r}
+# Show data with no ratings count but an average rating of >0
+average_rating_cleaned <- 
+filter(books_data_cleaned, average_rating != 0 & ratings_count >0)
+
+average_rating_cleaned
+```
+
+```{r}
+# Check if books with an average rating above 0 and a ratings count of 0 have been removed
+
+filter(average_rating_cleaned, average_rating >0 & ratings_count <1)
+```
+
+```{r}
+# Summarise the mean average rating for the top 25 authors with the highest average rating. 
+top_25_authors <- average_rating_cleaned %>% 
+  group_by(authors) %>% 
+  summarise(mean_average_rating = mean(average_rating)) %>% 
+  arrange(desc(mean_average_rating)) %>% 
+  head(25)
+
+top_25_authors
+```
+
+```{r}
+# Arrange books by the highest count of ratings, showing the top 100
+most_ratings <- average_rating_cleaned %>% 
+  group_by(ratings_count) %>% 
+  arrange(desc(ratings_count)) %>% 
+  head(100)
+
+most_ratings
+```
+
+```{r}
+# Summarise the mean average rating for the bottom 25 authors with the lowest average rating. 
+bottom_25_authors <- average_rating_cleaned %>% 
+  group_by(authors) %>% 
+  summarise(mean_average_rating = mean(average_rating)) %>% 
+  arrange(mean_average_rating) %>% 
+  head(25)
+
+bottom_25_authors
+```
+
+```{r}
+# Arrange books by the lowest count of ratings, showing the bottom 100
+least_ratings <- average_rating_cleaned %>% 
+  group_by(ratings_count) %>% 
+  arrange(ratings_count) %>% 
+  head(100)
+
+least_ratings
+```
+```{r}
+# Show all data for books with a rating over 4
+ratings_over_4 <- filter(average_rating_cleaned, average_rating > 4)
+
+ratings_over_4
+
+```
+```{r}
+# showing data for books with the highest average rating
+average_rating_cleaned %>% 
+  slice_max(average_rating, n = 10) 
+```
+```{r}
+# showing data for books with the lowest average rating
+average_rating_cleaned %>% 
+  slice_min(average_rating, n = 10) 
+```
+```{r}
+# showing data for books with the highest rating count
+average_rating_cleaned %>% 
+  slice_max(ratings_count, n = 10) 
+```
+```{r}
+# showing data for books with the lowest rating counts
+average_rating_cleaned %>% 
+  slice_min(ratings_count, n = 10) 
+```
+```{r}
+# showing data for books with highest number of pages
+average_rating_cleaned %>% 
+  slice_max(num_pages, n = 10) 
+```
+```{r}
+# showing data for the 10 books with lowest number of pages
+average_rating_cleaned %>% 
+  slice_min(num_pages, n = 10, with_ties = FALSE) 
+```
+```{r}
+#Show oldest book
+oldest_book <- average_rating_cleaned %>% 
+slice_min(publication_date)
+
+oldest_book
+```
+
+
+
+

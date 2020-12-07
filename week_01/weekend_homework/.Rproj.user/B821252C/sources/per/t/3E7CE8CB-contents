@@ -1,0 +1,107 @@
+---
+title: "Joining Mini-Lab"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+**Duration: 15 minutes** 
+
+Use the three datasets `actors.csv`, `movies.csv` and `roles.csv` to answer the following questions.
+
+#
+
+List all the roles, along with the actors who played each role in The Little Mermaid. (In the data as "Little Mermaid, The")
+
+#
+
+Find the actor who has appeared in most films. List the films they appeared in, the year the film was released and their role in the film.
+
+
+#
+
+For all actors who have appeared in at least two films, find the average rating of the films they appeared. Find the five actors with the highest average rank of films they appeared in.
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+```{r}
+#Reading in the data
+actors <- read_csv("data/actors.csv") 
+movies <- read_csv("data/movies.csv") 
+roles <- read_csv("data/roles.csv")
+
+view(movies)
+
+
+```
+
+Question 1 - List all the roles, along with the actors who played each role in The Little Mermaid. (In the data as "Little Mermaid, The")
+
+```{r}
+the_little_mermaid <-
+inner_join(movies, roles, by = c("id" = "movie_id")) %>% 
+  inner_join(actors, by = c("actor_id" = "id")) %>% 
+  filter(name == "Little Mermaid, The")  
+  
+  view(the_little_mermaid)
+```
+
+```{r}
+#alternative method
+
+roles %>% 
+  filter(movie_id == 192017) %>% 
+inner_join(actors, c("actor_id" = "id"))
+```
+
+
+Question 2 - Find the actor who has appeared in most films. List the films they appeared in, the year the film was released and their role in the film.
+
+```{r}
+actor_most_films <-
+inner_join(movies, roles, by = c("id" = "movie_id")) %>% 
+  inner_join(actors, by = c("actor_id" = "id")) %>% 
+ arrange(desc(film_count))
+
+view(actor_most_films)
+ 
+```
+
+```{r}
+roles %>% 
+  filter(actor_id == 22591) %>% 
+  left_join(movies, by = c("movie_id" = "id")) %>% 
+  select(name, year, role)
+```
+
+
+
+```{r}
+actor_most_films <-
+inner_join(movies, roles, by = c("id" = "movie_id")) %>% 
+  inner_join(actors, by = c("actor_id" = "id")) %>% 
+  select(name, year, role, first_name, last_name, film_count) %>% 
+ slice_max(film_count)
+
+view(actor_most_films)
+```
+
+
+Question 3
+For all actors who have appeared in at least two films, find the average rating of the films they appeared. Find the five actors with the highest average rank of films they appeared in.
+
+```{r}
+actors_two_or_more <- 
+  inner_join(movies, roles, by = c("id" = "movie_id")) %>% 
+  inner_join(actors, by = c("actor_id" = "id")) %>%  
+  select(actors, as.character(film_count >2))
+```
+

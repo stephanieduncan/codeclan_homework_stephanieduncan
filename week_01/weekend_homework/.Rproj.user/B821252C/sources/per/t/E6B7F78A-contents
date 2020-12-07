@@ -1,0 +1,40 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# loading required library
+library(tidyverse)
+```
+
+```{r}
+# reading in the data
+country_data <-
+read_csv("data/country_data.csv") %>%  view
+```
+
+
+
+
+```{r}
+# separating rows in column type, then removing X1 column, split years by rows, split type into columns, unit two rows.
+country_data %>% 
+  separate(
+    col = country,
+    into = c("country_code", "country_name"),
+    sep = "\\." ) %>% 
+  select(-X1) %>%
+  pivot_longer(
+  cols = Y1999:Y2001,
+  names_to = "year",
+  values_to = "values")  %>%
+    pivot_wider(
+    names_from = type,
+    values_from = values,
+     ) %>% 
+ unite(country_code, 
+        c(code_letter, code_numb), 
+        sep = "")
+```
+

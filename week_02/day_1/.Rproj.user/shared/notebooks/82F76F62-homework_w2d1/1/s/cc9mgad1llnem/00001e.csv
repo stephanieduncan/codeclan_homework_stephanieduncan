@@ -1,0 +1,6 @@
+"0","# cleaning customer_base_data"
+"0","customer_base_data <- customer_base %>% "
+"0","  select(-Customer_Vintage_Group)"
+"0","   "
+"0",""
+"0",""

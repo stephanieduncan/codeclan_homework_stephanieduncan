@@ -1,0 +1,8 @@
+"0",""
+"0","codeclan_hashtags <- codeclan_join %>% "
+"0","  select(tweet_id, hashtags) %>% "
+"0","   mutate(hashtags_lowcase = str_to_lower(hashtags)) %>% "
+"0","  select(-hashtags) %>% "
+"0","  drop_na(hashtags_lowcase) "
+"0",""
+"0","codeclan_hashtags"

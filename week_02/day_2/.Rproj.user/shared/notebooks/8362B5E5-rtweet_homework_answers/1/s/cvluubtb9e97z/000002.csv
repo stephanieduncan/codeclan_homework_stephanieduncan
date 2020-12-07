@@ -1,0 +1,8 @@
+"0","# 4 : count the number of likes by media type, and arrange them from most likes to least "
+"0","codeclan_tweets %>%"
+"0","  mutate(media_type2 = replace_na(media_type, ""text"")) %>%"
+"0","  group_by(media_type2) %>%"
+"0","  summarise(favourite_count_total = sum(favorite_count)) %>%"
+"0","  arrange(desc(favourite_count_total))"
+"2","`summarise()` ungrouping output (override with `.groups` argument)
+"

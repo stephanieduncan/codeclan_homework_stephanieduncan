@@ -1,0 +1,10 @@
+"0","total_number_characters <- 
+  code_clan_tweets %>% 
+   filter(screen_name == ""CodeClanScot"")  %>% 
+  group_by(text) %>% 
+  summarise(total_characters = (str_count(text)))
+"
+"2","`summarise()` regrouping output by 'text' (override with `.groups` argument)
+"
+"0",""
+"0","total_number_characters"

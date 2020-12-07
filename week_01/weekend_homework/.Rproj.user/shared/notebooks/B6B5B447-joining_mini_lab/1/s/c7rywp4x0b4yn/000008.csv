@@ -1,0 +1,47 @@
+"0","#Reading in the data"
+"0","actors <- read_csv(""data/actors.csv"") "
+"2","
+[36m──[39m [1m[1mColumn specification[1m[22m [36m────────────[39m
+cols(
+  id = [32mcol_double()[39m,
+  first_name = [31mcol_character()[39m,
+  last_name = [31mcol_character()[39m,
+  gender = [31mcol_character()[39m,
+  film_count = [32mcol_double()[39m
+)
+
+"
+"0","movies <- read_csv(""data/movies.csv"") "
+"2","
+[36m──[39m [1m[1mColumn specification[1m[22m [36m────────────[39m
+cols(
+  id = [32mcol_double()[39m,
+  name = [31mcol_character()[39m,
+  year = [32mcol_double()[39m,
+  rank = [31mcol_character()[39m
+)
+
+"
+"0","roles <- read_csv(""data/roles.csv"")"
+"2","
+[36m──[39m [1m[1mColumn specification[1m[22m [36m────────────[39m
+cols(
+  actor_id = [32mcol_double()[39m,
+  movie_id = [32mcol_double()[39m,
+  role = [31mcol_character()[39m
+)
+
+"
+"2","6 parsing failures.
+ row  col           expected actual             file
+  60 role delimiter or quote      B 'data/roles.csv'
+  60 role delimiter or quote        'data/roles.csv'
+  89 role delimiter or quote      Z 'data/roles.csv'
+  89 role delimiter or quote      Y 'data/roles.csv'
+1419 role delimiter or quote      S 'data/roles.csv'
+.... .... .................. ...... ................
+See problems(...) for more details.
+"
+"0","view(movies)"
+"0",""
+"0",""

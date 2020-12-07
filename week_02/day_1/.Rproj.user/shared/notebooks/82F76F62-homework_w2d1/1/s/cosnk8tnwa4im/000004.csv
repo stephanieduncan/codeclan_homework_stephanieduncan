@@ -1,0 +1,6 @@
+"0","customer_card_details <-"
+"0","inner_join(cardbase_data, customer_base_data, by = c(""Cust_ID"" = ""Cust_ID"")) %>% "
+"0","  inner_join(transaction_base_data, by = c(""Card_Number"" = ""Credit_Card_ID"")) "
+"0",""
+"0","  "
+"0","  view(customer_card_details)"

@@ -1,0 +1,125 @@
+"0","library(tidyverse)"
+"2","Registered S3 methods overwritten by 'dbplyr':
+  method         from
+  print.tbl_lazy     
+  print.tbl_sql      
+"
+"2","[30m── [1mAttaching packages[22m ────────────────────────────────── tidyverse 1.3.0 ──[39m
+"
+"2","[30m[32m✓[30m [34mggplot2[30m 3.3.2     [32m✓[30m [34mpurrr  [30m 0.3.4
+[32m✓[30m [34mtibble [30m 3.0.4     [32m✓[30m [34mdplyr  [30m 1.0.2
+[32m✓[30m [34mtidyr  [30m 1.1.2     [32m✓[30m [34mstringr[30m 1.4.0
+[32m✓[30m [34mreadr  [30m 1.4.0     [32m✓[30m [34mforcats[30m 0.5.0[39m
+"
+"2","package ‘ggplot2’ was built under R version 3.6.2"
+"2","package ‘tibble’ was built under R version 3.6.2"
+"2","package ‘tidyr’ was built under R version 3.6.2"
+"2","package ‘readr’ was built under R version 3.6.2"
+"2","package ‘purrr’ was built under R version 3.6.2"
+"2","package ‘dplyr’ was built under R version 3.6.2"
+"2","[30m── [1mConflicts[22m ───────────────────────────────────── tidyverse_conflicts() ──
+[31mx[30m [34mdplyr[30m::[32mfilter()[30m masks [34mstats[30m::filter()
+[31mx[30m [34mdplyr[30m::[32mlag()[30m    masks [34mstats[30m::lag()[39m
+"
+"0","# 1 : do some initial data exploration"
+"0","codeclan_tweets <- read_csv(""data/code_clan_tweets.csv"")"
+"2","
+[36m──[39m [1m[1mColumn specification[1m[22m [36m───────────────────────────────────────────────────[39m
+cols(
+  .default = col_character(),
+  tweet_id = [32mcol_double()[39m,
+  user_id = [32mcol_double()[39m,
+  display_text_width = [32mcol_double()[39m,
+  reply_to_status_id = [32mcol_double()[39m,
+  reply_to_user_id = [32mcol_double()[39m,
+  is_quote = [33mcol_logical()[39m,
+  is_retweet = [33mcol_logical()[39m,
+  favorite_count = [32mcol_double()[39m,
+  retweet_count = [32mcol_double()[39m,
+  quote_count = [33mcol_logical()[39m,
+  reply_count = [33mcol_logical()[39m,
+  symbols = [33mcol_logical()[39m,
+  retweet_favorite_count = [32mcol_double()[39m,
+  retweet_retweet_count = [32mcol_double()[39m,
+  retweet_user_id = [32mcol_double()[39m
+)
+[36mℹ[39m Use [38;5;235m[48;5;253m[38;5;235m[48;5;253m`spec()`[48;5;253m[38;5;235m[49m[39m for the full column specifications.
+
+"
+"0","view(codeclan_tweets)"
+"0","dim(codeclan_tweets)"
+"1","[1]"
+"1"," 234"
+"1","  27"
+"1","
+"
+"0","names(codeclan_tweets)"
+"1"," [1]"
+"1"," ""tweet_id""              "
+"1"," ""user_id""               "
+"1","
+"
+"1"," [3]"
+"1"," ""created_at""            "
+"1"," ""screen_name""           "
+"1","
+"
+"1"," [5]"
+"1"," ""text""                  "
+"1"," ""source""                "
+"1","
+"
+"1"," [7]"
+"1"," ""display_text_width""    "
+"1"," ""reply_to_status_id""    "
+"1","
+"
+"1"," [9]"
+"1"," ""reply_to_user_id""      "
+"1"," ""reply_to_screen_name""  "
+"1","
+"
+"1","[11]"
+"1"," ""is_quote""              "
+"1"," ""is_retweet""            "
+"1","
+"
+"1","[13]"
+"1"," ""favorite_count""        "
+"1"," ""retweet_count""         "
+"1","
+"
+"1","[15]"
+"1"," ""quote_count""           "
+"1"," ""reply_count""           "
+"1","
+"
+"1","[17]"
+"1"," ""hashtags""              "
+"1"," ""symbols""               "
+"1","
+"
+"1","[19]"
+"1"," ""urls_url""              "
+"1"," ""urls_t.co""             "
+"1","
+"
+"1","[21]"
+"1"," ""urls_expanded_url""     "
+"1"," ""media_type""            "
+"1","
+"
+"1","[23]"
+"1"," ""retweet_source""        "
+"1"," ""retweet_favorite_count"""
+"1","
+"
+"1","[25]"
+"1"," ""retweet_retweet_count"" "
+"1"," ""retweet_user_id""       "
+"1","
+"
+"1","[27]"
+"1"," ""retweet_location""      "
+"1","
+"

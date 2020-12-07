@@ -1,0 +1,18 @@
+"0","```r
+# reading in the data
+country_data <-
+read_csv(\"data/country_data.csv\") %>%  view
+```"
+"1","Missing column names filled in: 'X1' [1]
+── Column specification ──────────────────────────
+cols(
+  X1 = col_double(),
+  country = col_character(),
+  type = col_character(),
+  Y1999 = col_double(),
+  Y2000 = col_double(),
+  Y2001 = col_double(),
+  code_letter = col_character(),
+  code_numb = col_double()
+)
+"

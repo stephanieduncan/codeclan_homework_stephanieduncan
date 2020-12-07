@@ -1,0 +1,9 @@
+"0","total_number_likes <- "
+"0","  code_clan_tweets %>% "
+"0","  mutate(media_type2 = replace_na(media_type, ""text"")) %>% "
+"0","  group_by(media_type2) %>% "
+"0","  summarise(total_number_likes = sum(favorite_count)) %>% "
+"0","  arrange(desc(total_number_likes)) "
+"2","`summarise()` ungrouping output (override with `.groups` argument)
+"
+"0","total_number_likes"
