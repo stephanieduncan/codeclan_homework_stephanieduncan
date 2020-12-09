@@ -15,21 +15,21 @@ WHERE department = 'Legal'
 /* 3. Count the number of employees based in Portugal. */
 
 SELECT
-COUNT(*) AS number_of_portugal_employees
+COUNT(id) AS number_of_portugal_employees
 FROM employees
 WHERE country = 'Portugal'
 
 /* 4. Count the number of employees based in either Portugal or Spain. */
 
 SELECT
-COUNT (*) as number_of_portugal_and_spain_employees
+COUNT (id) as number_of_portugal_and_spain_employees
 FROM employees
 WHERE country = 'Portugal' OR country = 'Spain'
 
 /* 5. Count the number of pay_details records lacking a local_account_no. */
 
 SELECT
-COUNT(*)
+COUNT(id)
 FROM pay_details
 WHERE local_account_no IS NULL
 
@@ -42,21 +42,21 @@ ORDER BY last_name ASC NULLS LAST
 /* 7. How many employees have a first_name beginning with ‘F’? */
 
 SELECT 
-COUNT(*) AS first_names_starts_with_f
+COUNT(id) AS first_names_starts_with_f
 FROM employees
-WHERE first_name LIKE 'F_%'
+WHERE first_name ILIKE 'F%'
 
 /* 8. Count the number of pension enrolled employees not based in either France or Germany. */
 
 SELECT
-COUNT(*)
+COUNT(id)
 FROM employees
 WHERE country NOT IN ('France', 'Germany') AND pension_enrol = TRUE
 
 /* 9. Obtain a count by department of the employees who started work with the corporation in 2003. */
 
 SELECT
-department, COUNT(*) AS employees_2003_start
+department, COUNT(id) AS employees_2003_start
 FROM employees
 WHERE start_date BETWEEN '2013-01-01' AND '2013-12-31'
 GROUP BY department
@@ -64,31 +64,30 @@ GROUP BY department
 /* 10. Obtain a table showing department, fte_hours and the number of employees in each department who work each fte_hours pattern. Order the table alphabetically by department, and then in ascending order of fte_hours. */
 
 SELECT
-department, fte_hours, COUNT(fte_hours) AS number_of_employees_in_department
+department, fte_hours, COUNT(id) AS number_of_employees_in_department
 FROM employees
 GROUP BY department, fte_hours
-ORDER BY department ASC, 
-fte_hours ASC
+ORDER BY department ASC NULLS LAST, 
+fte_hours ASC NULLS LAST
 
 /* 11. Obtain a table showing any departments in which there are two or more employees lacking a stored first name. Order the table in descending order of the number of employees lacking a first name, and then in alphabetical order by department. */
 
 SELECT
-department, COUNT(*) 
+department, COUNT(id) 
 FROM employees
 WHERE first_name IS NULL
 GROUP BY department
-HAVING COUNT(*) >= 2
-ORDER BY COUNT(*) DESC,
-department ASC
+HAVING COUNT(id) >= 2
+ORDER BY COUNT(id) DESC NULLS LAST,
+department ASC NULLS LAST
 
 /* 12. [Tough!] Find the proportion of employees in each department who are grade 1. */
 
-SELECT
-department, sum(grade) AS employees_grade_1, count(id) AS number_of_employees,
-(CAST((sum(grade)) AS REAL) / CAST (COUNT(id) AS REAL)) AS proportion_of_employees_grade_1
-FROM employees
-GROUP BY department 
-ORDER BY (CAST((sum(grade)) AS REAL) / CAST (COUNT(id) AS REAL)) DESC
+SELECT 
+  department, 
+  SUM(CAST(grade = '1' AS INT)) / CAST(COUNT(id) AS REAL) AS prop_grade_1 
+FROM employees 
+GROUP BY department
 
 
 
