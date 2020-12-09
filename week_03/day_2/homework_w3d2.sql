@@ -24,7 +24,8 @@ ON e.team_id = t.id
 ORDER BY team_name;
 
 -- 3. Find the first name, last name and team name of employees who are 
--- members of teams for which the charge cost is greater than 80. Order the employees alphabetically by last name.
+-- members of teams for which the charge cost is greater than 80. Order the employees 
+-- alphabetically by last name.
 
 SELECT 
 e.first_name,
@@ -44,10 +45,10 @@ SELECT
 t.name AS team_name,
 COUNT(e.id) AS number_of_employees
 FROM 
-teams AS t LEFT JOIN employees AS e
+teams AS t RIGHT JOIN employees AS e
  ON e.team_id = t.id
 GROUP BY t.id
-ORDER BY COUNT(e.id) ASC;
+ORDER BY number_of_employees ASC;
 
 -- 5. The effective_salary of an employee is defined as their fte_hours multiplied by their salary. 
 -- Get a table for each employee showing their id, first_name, last_name, fte_hours, salary 
@@ -62,24 +63,30 @@ fte_hours,
 salary,
 (fte_hours * salary) AS effective_salary,
 SUM(fte_hours * salary) OVER (ORDER BY fte_hours * salary ASC NULLS LAST) AS effective_salary_running_total
-FROM employees
-ORDER BY effective_salary ASC;
+FROM employees;
 
 -- 6. The total_day_charge of a team is defined as the charge_cost of the team 
 -- multiplied by the number of employees in the team. Calculate the total_day_charge for each team.
 
 SELECT 
 t.name AS team_name,
-COUNT(e.id) AS number_of_employees_in_team
-FROM 
-teams AS t LEFT JOIN employees AS e
- ON t.id = e.team_id
+COUNT(e.id) * CAST(t.charge_cost AS INT) AS total_day_charge
+FROM employees AS e
+INNER JOIN teams AS t
+ ON e.team_id = t.id
  GROUP BY t.id;
 
 -- 7. How would you amend your query from question 6 above to show only those teams with a 
 -- total_day_charge greater than 5000?
 
-
+SELECT 
+t.name AS team_name,
+COUNT(e.id) * CAST(t.charge_cost AS INT) AS total_day_charge
+FROM employees AS e
+INNER JOIN teams AS t
+ ON e.team_id = t.id
+ GROUP BY t.id
+HAVING COUNT(e.id) * CAST(t.charge_cost AS INT) > 5000;
 
 
 
