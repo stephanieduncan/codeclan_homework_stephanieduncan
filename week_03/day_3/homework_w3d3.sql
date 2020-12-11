@@ -46,7 +46,7 @@ WHERE email ILIKE '%yahoo%'
 -- not enrolled, and with unknown enrollment status in the corporation pension scheme.
 
 SELECT
-count(*),
+count(id),
 pension_enrol
 FROM employees
 GROUP BY pension_enrol;
@@ -55,16 +55,9 @@ GROUP BY pension_enrol;
 -- department who work 1.0 full-time equivalent hours (fte_hours)?
 
 SELECT
-MAX(salary)
+MAX(salary) AS max_salary_engineering_fte_hours_as_1
 FROM employees
 WHERE department = 'Engineering' AND fte_hours = '1.0';
-
-SELECT
-*
-FROM employees
-WHERE department = 'Engineering' AND fte_hours = '1.0'
-ORDER BY salary DESC NULLS LAST
-LIMIT 1;
 
 -- 8. Get a table of country, number of employees in that country, and 
 -- the average salary of employees in that country for any countries in which 
@@ -77,7 +70,7 @@ AVG(salary) AS average_salary
 FROM employees
 GROUP BY country
 HAVING count(id) > 30
-ORDER BY AVG(salary) ASC NULLS LAST;
+ORDER BY AVG(salary) DESC NULLS LAST;
 
 -- 9. Return a table containing each employees first_name, last_name, 
 -- full-time equivalent hours (fte_hours), salary, and a new column effective_yearly_salary 
@@ -105,7 +98,7 @@ e.last_name
 -- pd.local_tax_code
 FROM employees AS e
 INNER JOIN pay_details AS pd
-ON e.id = pd.id
+ON e.pay_detail_id = pd.id
 WHERE local_tax_code IS NULL
 -- ORDER BY e.last_name ASC NULLS LAST;
 
@@ -114,11 +107,13 @@ WHERE local_tax_code IS NULL
 -- expected_profit for each employee.
 
 SELECT
+e.id,
 e.first_name,
 e.last_name,
--- e.fte_hours,
--- e.salary,
--- t.charge_cost,
+e.fte_hours,
+e.salary,
+t.name,
+t.charge_cost,
 (48 * 35 * CAST(charge_cost AS INT) - salary) * fte_hours AS expected_profit
 FROM employees AS e
 LEFT JOIN teams AS t
@@ -134,9 +129,65 @@ ORDER BY expected_profit DESC NULLS LAST
 
 SELECT
 first_name,
-count(id)
+count(id) AS name_count
 FROM employees
 WHERE first_name IS NOT NULL
 GROUP BY first_name
 HAVING count(id) > 1
 ORDER BY count(id) DESC, first_name ASC
+
+
+--2 Extension
+--[Tough] Get a list of the id, first_name, last_name, department, 
+-- salary and fte_hours of employees in the largest department. 
+-- Add two extra columns showing the ratio of each employee’s salary to that 
+-- department’s average salary, and each employee’s fte_hours to that 
+-- department’s average fte_hours.
+
+
+--Note - Cross Joins do not need to be specified by the variable name that they are matching on
+WITH biggest_dept_details(name, avg_salary, avg_fte_hours) AS (
+  SELECT 
+     department,
+     AVG(salary),
+     AVG(fte_hours)
+  FROM employees
+  GROUP BY department
+  ORDER BY COUNT(id) DESC NULLS LAST
+  LIMIT 1
+)
+SELECT
+  e.id,
+  e.first_name,
+  e.last_name,
+  e.department,
+  e.salary,
+  e.fte_hours,
+  e.salary / bdd.avg_salary AS salary_over_dept_avg,
+  e.fte_hours / bdd.avg_fte_hours AS fte_hours_over_dept_avg
+FROM employees AS e CROSS JOIN biggest_dept_details AS bdd
+WHERE department = bdd.name
+
+SELECT 
+    id, 
+    first_name, 
+    last_name, 
+    department,
+    salary,
+    fte_hours,
+    salary / AVG(salary) OVER () AS salary_over_dept_avg,
+    fte_hours / AVG(fte_hours) OVER () AS fte_hours_over_dept_avg
+FROM employees
+WHERE department = (
+  SELECT
+    department
+  FROM employees
+  GROUP BY department
+  ORDER BY COUNT(id) DESC NULLS LAST
+  LIMIT 1
+);
+
+-- [Extension - how could you generalise your query to be able to handle 
+-- the fact that two or more departments may be tied in their counts of employees. 
+-- In that case, we probably don’t want to arbitrarily return details for 
+-- employees in just one of these departments].
