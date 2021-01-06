@@ -1,0 +1,12 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+qb_revenue_breakdown <- CodeClanData::qb_revenue_breakdown
+qb_monthly_sales <- CodeClanData::qb_monthly_sales
+qb_competitors <- CodeClanData::qb_competitors
+qb_device_data <- CodeClanData::qb_device_data
+```
+

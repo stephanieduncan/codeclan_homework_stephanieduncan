@@ -27,44 +27,69 @@ ggplot(backpack) +
     fill = "Sex"
   ) +
   scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35, 40)) +
-  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14))
-
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14)) +
+  theme_light()
+#The majority of students carry a backpack weighing between 5 and 15kg.
 ```
 3. Are there differences in backpack weight between sex?
-The data shows more females carrying bags than males. There are more males carrying bags over 25kg than females.
+
+```{r}
+ggplot(backpack) +
+  aes(x = backpack_weight, fill = sex, colour = "white") +
+  scale_fill_manual(values=c('orange', 'purple')) +
+  geom_histogram(bins = 20, col = "white", show.legend = FALSE) + 
+  theme_light() + 
+  labs(y = "number of backpacks", x = "weight") + 
+  facet_wrap(~ sex, nrow = 2)
+#The data shows more females carrying bags than males, however there is a right skewed distribution for each sex. There are more males carrying bags over 25kg than females. 
+```
+
 
 4. What is the relationship between body weight and backpack weight?
 ```{r}
 ggplot(backpack) +
-  geom_col(aes(x = body_weight, y = backpack_weight), color = "steel blue") +
+  geom_point(aes(x = body_weight, y = backpack_weight), color = "steel blue") +
   labs(
     x = "Body Weight",
     y = "Backpack  Weight",
     title = "Weight of Backpacks Carried by Body Weight"
   ) 
-#The graph shows right-skewed distribution.
+#There is no clear relationship between backpack weight and student weight.
 ```
 5. Is this relationship different between men and women? Choose an appropriate plot and interpret your findings.
 ```{r}
 ggplot(backpack) +
-  geom_col(aes(x = body_weight, y = backpack_weight, fill = sex, position = "dodge")) +
+  geom_point(aes(x = body_weight, y = backpack_weight, color = sex)) +
   labs(
     x = "Body Weight",
     y = "Backpack  Weight",
     title = "Weight of Backpacks Carried by Body Weight",
-fill = "Sex")
+fill = "Sex") +
+  scale_fill_manual(values=c('orange', 'purple')) +
+  theme_light() +
+  facet_wrap(~ sex)
 
 #Females carry backpacks which are lighter than those carried by males
 ```
 
 6. What proportion of students report back pain?
 ```{r}
+backpack <- backpack %>%
+  mutate(backpain_labelled = recode(back_problems, 
+                       "0" = "No", 
+                       "1" = "Yes"))
 ggplot(backpack) +
-  geom_bar(aes(x = back_problems, fill = sex), position = "fill") +
+  geom_bar(aes(x = backpain_labelled, fill = backpain_labelled)) +
    labs(
     x = "Back Problems",
+    y = "Number of Students",
     title = "Proportion of Students with Back Problems",
-fill = "Sex")
+fill = "Sex") +
+  ylim(0,100) +
+  scale_fill_manual(values=c('orange', 'purple')) +
+  theme_light() +
+  theme(legend.position = "none")
+#One third of students are reporting back pain.
 ```
 
 
@@ -72,12 +97,17 @@ fill = "Sex")
 7. Is this proportion different between men and women?
 ```{r}
 ggplot(backpack) +
-  geom_bar(aes(x = back_problems, fill = sex), position = "fill") +
+  geom_bar(aes(x = backpain_labelled, fill = backpain_labelled)) +
    labs(
     x = "Back Problems",
+    y = "Number of Students",
     title = "Proportion of Students with Back Problems",
 fill = "Sex") +
-  scale_fill_brewer(palette = "Set3")
+  facet_wrap(~sex) +
+  scale_fill_manual(values=c('orange', 'purple')) +
+  theme_light() +
+  theme(legend.position = "none")
+#More females report back pain than males, possibly due to females carrying backpacks of a similar weight to males but with the disadvantage of lower body weights. 
 ```
 
 8.
@@ -86,12 +116,33 @@ Now you’ve investigated your data separately, create plots to describe the rel
 Try both backpack_weight and body_weight as well as the ratio.
 
 ```{r}
+
+pain_labels <- c("backpain: no", "backpain: yes")
+names(pain_labels) <- c("No", "Yes")
+
+sex_labels <- c("sex: female", "sex: male")
+names(sex_labels) <- c("Female", "Male")
+
+
 ggplot(backpack) + 
-  geom_histogram(aes(x = backpack_weight, fill = sex), col = "white") + 
-  facet_wrap(~sex ~back_problems) +
-  labs(
-    x = "Backpack Weight",
-title = "Reported Back Pain against Weight of Backpacks carried by Students") +
-   scale_fill_brewer(palette = "Set2")
+  aes(x = body_weight, y = backpack_weight, color = backpain_labelled) + 
+  geom_point() + 
+  facet_grid(sex ~ backpain_labelled, 
+             labeller = labeller(backpain_labelled = pain_labels, sex = sex_labels)) + 
+  labs(x = "\n body weight", y = "backpack weight \n") +
+      scale_color_manual(values=c('#f0ca41', '#5022bd'))+
+theme(legend.position = "none")
+
   
 ```
+```{r}
+
+ggplot(backpack) + 
+  geom_histogram(aes(x = ratio, fill = backpain_labelled), bins = 20, col = "white") + 
+  facet_grid(sex ~ backpain_labelled, 
+             labeller = labeller(backpain_labelled = pain_labels, sex = sex_labels)) + 
+  labs(x = "\n body weight: backpack weight ratio") +
+theme(legend.position = "none") +
+ scale_fill_brewer(palette = "Set2")
+```
+
