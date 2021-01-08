@@ -1,7 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(dplyr)
-library(ggplot2)
+
 
 
 olympics_overall_medals <- CodeClanData::olympics_overall_medals
