@@ -1,0 +1,198 @@
+---
+title: "The Titanic & Probability"
+output: html_notebook
+---
+
+```{r}
+#Loading prob library first to ensure the dplyr filter can be recognized later 
+library(prob)
+```
+
+```{r}
+library(gtools)
+library(tidyverse)
+```
+
+1. The Titanic
+
+```{r}
+#Loading the data
+titanic_data <- read_csv("titanic.csv")
+
+#Viewing class names
+class_names <- unique(titanic_data$class)
+
+class_names
+```
+
+```{r}
+#Creating a column for crew 
+titanic_data <- titanic_data %>% 
+  #Ensuring 1st, 2nd & 3rd class passengers are represented as false in the crew column
+  mutate(crew = case_when(class == "1st" ~ FALSE,
+                          class == "2nd" ~ FALSE,
+                          class == "3rd" ~ FALSE,
+                          #else true
+                          TRUE ~ TRUE))
+
+
+```
+
+1. Calculate the conditional probability 
+prob( survived ∣ crew )
+
+```{r}
+prob_crew_survived <- titanic_data %>% 
+  filter(survived == "yes", crew == TRUE) %>% 
+  summarise(prob = n() / nrow(titanic_data))
+prob_crew_survived
+```
+
+Probability that a person was a crew member
+```{r}
+crew_probability <- titanic_data %>% 
+  filter(crew == TRUE) %>% 
+  summarise(prob = n()) / nrow(titanic_data)
+crew_probability
+```
+
+```{r}
+prob_crew_survived/crew_probability
+```
+
+
+
+2. Calculate the conditional probability 
+prob( survived ∣ passenger )
+```{r}
+prob_passenger_survived <- titanic_data %>% 
+  filter(survived == "yes", crew == FALSE) %>% 
+  summarise(prob = n() / nrow(titanic_data))
+prob_passenger_survived
+```
+
+
+Probability that a person was a passenger
+```{r}
+passenger_probability <- titanic_data %>% 
+  filter(crew == FALSE) %>% 
+  summarise(prob = n()) / nrow(titanic_data)
+passenger_probability
+```
+
+
+```{r}
+prob_passenger_survived/passenger_probability
+```
+
+
+2. MVP and Extension - Probability problems
+1. If I roll a six-sided dice once, what is the probability of getting a number less than 5?
+```{r}
+rolldie(1) %>% 
+  filter(X1 < 5)
+
+
+#There are 6 total outcomes and 4 opportunities to roll a number lower than 5.
+#The Probability is 4/6
+4/6
+```
+
+2. How many outcomes are there in the sample space of an experiment in which we toss three dice?
+```{r}
+rolldie(3) %>% 
+  nrow()
+
+#There are 216 possible outcomes of rolling 3 die.
+```
+
+3. In an experiment where we roll four dice:
+
+```{r}
+rolldie(4) %>% 
+  nrow()
+```
+
+
+i. how many outcomes are in the event total_equals_5_6_7 (i.e. the total of the four dice equals 5, 6 or 7)?
+```{r}
+total_equals_5_6_7 <- 
+rolldie(4) %>% 
+  filter(X1 + X2 + X3 + X4 == 5 | X1 + X2 + X3 + X4 == 6 | X1 + X2 + X3 + X4 == 7) 
+#There are 34 outcomes where the total of four die equals 5, 6 or 7
+```
+`
+
+
+ii. what is the probability of this event?
+```{r}
+#The probability of this event is 
+34/1296
+```
+
+
+iii. what assumptions do we apply in answering part ii?
+- Assuming that the order that the dice are rolled does not matter
+
+4. Five chairs are placed in a row in a room, along with five people of differing height. The people sit down randomly on the chairs. What is the probability that they sit in order of decreasing height, left to right?
+
+```{r}
+#Outcomes where height order matters
+five_chairs_permutations <- as_tibble(
+permutations(
+  n = 5,
+  r = 5
+)
+) 
+#There are 120 possible outcomes of five people sitting in a random order
+
+five_chairs_combinations <- as_tibble(
+combinations(
+  n = 5,
+  r = 5,
+  repeats.allowed = FALSE
+)
+) 
+#There is one possible outcome of people sitting in decreasing height order
+
+#The probability is the possibility of the specified outcome divided by the total number of all possible outcomes (1/120)
+nrow(five_chairs_combinations)/nrow(five_chairs_permutations)
+
+```
+
+5. I roll six dice:
+
+```{r}
+rolldie(6) %>% 
+  nrow
+#There are 6 dice (n = 6) and we are choosing 6 at a time (r = 6)
+six_dice <- 
+rolldie(6) %>% 
+  as_tibble(permutations(
+    n = 6,
+    r = 6,
+    repeats.allowed = TRUE
+  )
+  ) 
+```
+
+
+1. what is the probability I see the numbers 6, 5, 4, 3, 2 and 1 in order on the dice, left to right?
+```{r}
+ordered_six <- six_dice %>% 
+  isin(., c(6, 5, 4, 3, 2, 1), ordered = TRUE) 
+
+sum(ordered_six)/nrow(six_dice)
+  
+```
+
+
+2. what is the probability I see one each of the numbers 6, 5, 4, 3, 2 and 1 on the dice regardless of order?
+
+```{r}
+random_order <- six_dice %>% 
+  isin(., c(6, 5, 4, 3, 2, 1), ordered = FALSE) 
+
+sum(random_order)/nrow(six_dice)
+```
+
