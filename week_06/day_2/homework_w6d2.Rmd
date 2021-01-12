@@ -1,0 +1,130 @@
+---
+title: "Distributions Homework"
+output: html_notebook
+---
+
+```{r}
+#Loading tidyverse to be able to read csv file
+library(tidyverse)
+#Loading janitor to be able to clean names
+library(janitor)
+```
+1. 
+```{r}
+#Reading in the data and cleaning variable names
+mobile_phones <- read_csv("data/20190928-items.csv") %>%  clean_names()
+
+head(mobile_phones)
+
+mobile_brands <- unique(mobile_phones$brand)
+
+mobile_brands
+```
+
+2. Find the brand with the highest numbers of phones in the dataset.
+```{r}
+mobile_phones %>% 
+  group_by(brand) %>% 
+  summarise(number_of_phones = n()) %>% 
+  arrange(desc(number_of_phones))
+```
+
+```{r}
+mobile_phones %>% 
+  ggplot(aes(x = brand)) +
+  geom_bar() +
+  theme_light() +
+   theme(axis.text.x = element_text(angle = 55, hjust = 1)) +
+  labs(
+    title = "Number of Phones by Brand"
+  ) +
+  xlab("Brand") +
+  ylab("Number of Phones") 
+```
+3. For your top brand, plot the distribution of phone ratings as a probability density, overlaying a fitted normal distribution. Do you think the normal distribution provides a good model of these ratings?
+
+The graph is left skewed and the normal distribution does not provide a good model of the ratings.
+```{r}
+samsung_stats <- 
+mobile_phones %>% 
+  #Filtering results to show top brand only.
+  filter(brand == "Samsung") %>% 
+  summarise(
+    num = n(),
+    mean = mean(rating),
+    sd = sd(rating)
+  )
+
+mobile_phones %>% 
+  filter(brand == "Samsung") %>% 
+  ggplot(aes(x = rating)) +
+  geom_histogram(aes(y = ..density..), col = "white", bins = 25) +
+  #creating line showing normal distribution
+  stat_function(
+    #normal distribution
+    fun = dnorm,
+    args = list(
+      mean = samsung_stats$mean,
+      sd = samsung_stats$sd
+    ),
+    col = "red"
+  ) +
+  theme_light() +
+  ylab("Probability Density") +
+  xlab("Phone Rating") +
+  labs(
+    title = "Distribution of Ratings for Samsung Phones",
+    subtitle = "Probability Density Overlaying a Fitted Normal Distribution"
+  ) 
+```
+
+4. We can be more quantitative in comparing the distribution of top brand ratings with a normal distribution. You calculated the mean() and sd() of your distribution in an earlier question. Use these values to calculate the proportions of ratings within one-, two- and three standard deviations of the mean. Compare these proportions with those you expect for a normal distribution.
+
+i. Finding the proportion of ratings within one standard deviation of the mean
+
+```{r}
+samsung_ratings <- mobile_phones %>% 
+  select(brand, rating) %>% 
+   filter(brand == "Samsung")
+
+mobile_phones %>%
+  filter(brand == "Samsung") %>% 
+  filter(rating >= samsung_stats$mean - samsung_stats$sd) %>%
+  filter(rating <= samsung_stats$mean + samsung_stats$sd) %>%
+  summarise(prop_within_1sd = n() / nrow(samsung_ratings))
+```
+
+ii. Within 2 standard deviations
+```{r}
+mobile_phones %>%
+  filter(brand == "Samsung") %>% 
+  filter(rating >= samsung_stats$mean - 2* samsung_stats$sd) %>%
+  filter(rating <= samsung_stats$mean + 2* samsung_stats$sd) %>%
+  summarise(prop_within_2sd = n() / nrow(samsung_ratings))
+```
+Within 3 standard deviations
+```{r}
+mobile_phones %>%
+  filter(brand == "Samsung") %>% 
+  filter(rating >= samsung_stats$mean - 3* samsung_stats$sd) %>%
+  filter(rating <= samsung_stats$mean + 3* samsung_stats$sd) %>%
+  summarise(prop_within_3sd = n() / nrow(samsung_ratings))
+```
+
+```{r}
+#Creating scale column
+samsung_scaled <- mobile_phones %>% 
+  filter(brand == "Samsung")  %>% 
+  mutate(z_rating = scale(rating))
+
+samsung_scaled
+```
+
+
+```{r}
+#Filtering out the results for 3 standard deviations away from the mean to find the outliers
+samsung_scaled %>% 
+  filter(!between(z_rating, left = -3, right = 3))
+```
+
+There are 8 outliers.

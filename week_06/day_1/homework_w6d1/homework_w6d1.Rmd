@@ -22,8 +22,17 @@ titanic_data <- read_csv("titanic.csv")
 #Viewing class names
 class_names <- unique(titanic_data$class)
 
+head(titanic_data)
+
 class_names
 ```
+
+```{r}
+#Count of each class
+titanic_data %>%
+  count(class)
+```
+
 
 ```{r}
 #Creating a column for crew 
@@ -38,52 +47,44 @@ titanic_data <- titanic_data %>%
 
 ```
 
+
+```{r}
+#Counting crew for true and false
+titanic_data %>%
+  count(crew)
+```
+
+
 1. Calculate the conditional probability 
 prob( survived ∣ crew )
 
 ```{r}
-prob_crew_survived <- titanic_data %>% 
-  filter(survived == "yes", crew == TRUE) %>% 
-  summarise(prob = n() / nrow(titanic_data))
-prob_crew_survived
+titanic_data %>%
+  filter(crew) %>%
+  summarise(prob = sum(survived == "yes") / n())
 ```
-
-Probability that a person was a crew member
-```{r}
-crew_probability <- titanic_data %>% 
-  filter(crew == TRUE) %>% 
-  summarise(prob = n()) / nrow(titanic_data)
-crew_probability
-```
-
-```{r}
-prob_crew_survived/crew_probability
-```
-
-
 
 2. Calculate the conditional probability 
 prob( survived ∣ passenger )
 ```{r}
-prob_passenger_survived <- titanic_data %>% 
-  filter(survived == "yes", crew == FALSE) %>% 
-  summarise(prob = n() / nrow(titanic_data))
-prob_passenger_survived
+titanic_data %>%
+  filter(!crew) %>%
+  summarise(prob = sum(survived == "yes") / n())
 ```
-
-
-Probability that a person was a passenger
-```{r}
-passenger_probability <- titanic_data %>% 
-  filter(crew == FALSE) %>% 
-  summarise(prob = n()) / nrow(titanic_data)
-passenger_probability
-```
+Passengers were more likely to have survived the sinking of the titanic than crew.
 
 
 ```{r}
-prob_passenger_survived/passenger_probability
+library(janitor)
+titanic_data %>%
+  tabyl(crew, survived) %>%
+  adorn_totals(where = c("row", "col")) %>%
+  adorn_percentages(denominator = "all") %>%
+  adorn_rounding(digits = 4) %>%
+  adorn_title()
 ```
+
+
 
 
 2. MVP and Extension - Probability problems
@@ -97,6 +98,8 @@ rolldie(1) %>%
 #The Probability is 4/6
 4/6
 ```
+
+
 
 2. How many outcomes are there in the sample space of an experiment in which we toss three dice?
 ```{r}
