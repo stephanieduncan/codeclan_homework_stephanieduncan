@@ -1,0 +1,144 @@
+---
+title: "Confidence Intervals Lab"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+
+1 Introduction
+In this lab we’re going to draw multiple samples from a population, calculate a bootstrapped 95%
+ CI for each, and then see how often the population parameter lies within the CI. Hopefully this will help you to understand what we mean by ‘confidence’:
+
+
+‘If we draw 1000 repeated samples from a population, and form a 95%
+ CI for each for a parameter estimate, then, on average, we are confident that approximately 950
+ CIs will contain the true population parameter, and approximately 50
+ will not. This is what we will try to show below.’
+ 
+ 2. MVP
+ Reading in the data & cleaning the variable names.
+```{r}
+ames_data <- read_csv("data/ames.csv") %>% 
+  clean_names()
+```
+ 
+ 3.
+```{r}
+#Plotting a histogram of sale_price to check if the distribution is normal.
+library(stats)
+ames_data %>% 
+  ggplot(aes(x = sale_price)) +
+  geom_histogram(aes(y = ..density..), col = "white") +
+  theme_light() +
+  scale_x_continuous(labels = scales::comma) +
+  stat_function(
+    fun = dnorm, 
+    args = list(
+      mean = mean(ames_data$sale_price), 
+      sd = sd(ames_data$sale_price)
+    ),
+    col = "red"
+  )
+
+#The distribution is right skewed and unimodal.
+
+```
+ 
+ 4. Calculate the population parameter mean of sale_price. Store it in a variable, as we’ll need this value later when we check if each CI contains the parameter value or not.
+```{r}
+ames_pop <- ames_data %>% 
+  summarise(mean_sale_price = mean(sale_price))
+
+ames_pop
+```
+ 5. Now we are going to:
+i. take 1000 random samples each of size 100 from sale_price in ames
+ii. create a boostrap sampling distribution of mean(sale_price) from each 100-observation sample (use 1000 reps)
+iii. calculate the 95% CI for each bootstrap distribution
+iv. store the upper and lower bounds of the CI in a tibble called results
+```{r}
+library(infer)
+#5i. 
+#Generating a sample size of 100 from sale_price in ames
+sample_100 <- ames_data %>%
+    rep_sample_n(size = 100, reps = 1) %>%
+    ungroup() %>%
+    select(sale_price)
+
+sample_100
+
+```
+
+```{r}
+#5ii
+#Creating a boostrap sampling distribution of mean(sale_price) from each 100-observation sample 
+bootstrap_100 <- sample_100 %>%
+    specify(response = sale_price) %>%
+    generate(reps = 1000, type = "bootstrap") %>%
+    calculate(stat = "mean")
+
+bootstrap_100
+```
+
+Calculating the 95% CI for each bootstrap distribution
+```{r}
+#5 iii
+ci_95 <- bootstrap_100 %>%
+    get_ci(level = 0.95, type = "percentile")
+
+ci_95
+```
+iv. Storing the upper and lower bounds of the CI in a tibble called results
+```{r}
+library(infer)
+results <- tibble()
+for (sample_num in 1:1000){
+  
+sample_100 <- ames_data %>%
+    rep_sample_n(size = 100, reps = 1) %>%
+    ungroup() %>%
+    select(sale_price)
+
+bootstrap_100 <- sample_100 %>%
+    specify(response = sale_price) %>%
+    generate(reps = 1000, type = "bootstrap") %>%
+    calculate(stat = "mean")
+
+ci_95 <- bootstrap_100 %>%
+    get_ci(level = 0.95, type = "percentile")
+
+
+ci_results <- c(
+    sample_num = sample_num, 
+    lower = ci_95 %>% 
+      pull(lower_ci), 
+    upper = ci_95 %>%
+      pull(upper_ci)
+  )
+
+results <- results %>%
+    bind_rows(ci_results)
+}
+```
+
+```{r}
+#Visualising the sampling distribution and CI
+bootstrap_100 %>%
+  visualise(bins = 30) +
+  shade_confidence_interval(endpoints = ci_95)
+```
+```{r}
+#Calculating the point estimate
+#Sampling error is the point estimate - population parameter
+bootstrap_100 %>%
+  summarise(point_est = mean(stat))
+```
+
+
+6. Pipe results to mutate() to add a new variable popn_param_in_ci which will be TRUE if the population parameter we calculated earlier is between lower and upper, and FALSE otherwise.
+
+
