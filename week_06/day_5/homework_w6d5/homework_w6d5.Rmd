@@ -53,7 +53,7 @@ msleep %>%
   ggplot(aes(x = sleep_total)) +
   geom_histogram(col = "white", fill = "blue", bins = 30)
 
-#The distribution is not skewed and is multi-modal.
+#The distribution is not skewed and is bi-modal.
 ```
 ```{r}
 #Generating a box plot of the data
@@ -153,7 +153,7 @@ omni_herbivore %>%
   geom_boxplot()
 ```
 
-From the boxplot, there is some overlap from the two groups and the medians are similar. 
+From the boxplot, there is some overlap from the two types and the medians are similar. Further analysis is required.
 
 ```{r}
 #Calculating the observed statistic (the difference in means of total sleep for omnivores and herbivores.)
