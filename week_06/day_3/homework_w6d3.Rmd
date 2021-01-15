@@ -32,17 +32,9 @@ ames_data <- read_csv("data/ames.csv") %>%
 library(stats)
 ames_data %>% 
   ggplot(aes(x = sale_price)) +
-  geom_histogram(aes(y = ..density..), col = "white") +
+  geom_histogram(col = "white") +
   theme_light() +
-  scale_x_continuous(labels = scales::comma) +
-  stat_function(
-    fun = dnorm, 
-    args = list(
-      mean = mean(ames_data$sale_price), 
-      sd = sd(ames_data$sale_price)
-    ),
-    col = "red"
-  )
+  scale_x_continuous(labels = scales::comma) 
 
 #The distribution is right skewed and unimodal.
 
@@ -141,4 +133,15 @@ bootstrap_100 %>%
 
 6. Pipe results to mutate() to add a new variable popn_param_in_ci which will be TRUE if the population parameter we calculated earlier is between lower and upper, and FALSE otherwise.
 
+
+```{r}
+results <- results %>%
+  mutate(popn_param_in_ci = lower <= ames_pop$mean_sale_price & ames_pop$mean_sale_price <= upper)
+```
+
+6b. Perform an appropriate summarise() to determine the proportion of CIs that contain the population parameter. Our confidence level was 95% (equivalent to a proportion of 0.95). Is your proportion close to that value?
+```{r}
+results %>%
+  summarise(proportion_CI_containing_popn_param = mean(popn_param_in_ci))
+```
 

@@ -1,0 +1,304 @@
+---
+title: "Hypothesis Tests & Probability"
+output: html_notebook
+---
+
+1 MVP
+1.1 Hypothesis testing - practical
+
+You work for an animal conservation organisation and are looking to do some investigating into some of the animals to provide evidence for some projects you are looking to run.
+
+In this homework we’ll use the msleep data set provided in the ggplot package. It concerns the sleeping patterns of various types of mammal.
+
+```{r}
+#Loading the relevant libraries
+library(tidyverse)
+data(msleep)
+#No requirement to apply clean_names as the data is already in snake case format.
+```
+
+```{r}
+#Taking a look at the data
+head(msleep)
+#There are quite a few missing values across various variable names
+```
+```{r}
+#Checking how big the data is
+dim(msleep)
+```
+
+```{r}
+#Taking an overview of the variable names
+names(msleep)
+```
+
+```{r}
+glimpse(msleep)
+```
+
+
+```{r}
+msleep %>% 
+  #Checking for missing values in the sleep_total column
+  filter(is.na(sleep_total))
+#no missing values in sleep_total column
+```
+Jabberwockies sleep for around 7 hours a night, on average. Perform an appropriate statistical test to determine whether the mean sleep_total in the sampled population of animal types differs from the typical value for jabberwockies.
+
+```{r}
+#Visualising the data
+#Generating a histogram for sleep_total for all animals in the data set
+
+msleep %>% 
+  ggplot(aes(x = sleep_total)) +
+  geom_histogram(col = "white", fill = "blue", bins = 30)
+
+#The distribution is not skewed and is multi-modal.
+```
+```{r}
+#Generating a box plot of the data
+msleep %>% 
+  ggplot(aes(x = sleep_total)) +
+  geom_boxplot()
+```
+
+The two competing hypothesis:
+H0: the null hypothesis - the mean sleep total for Jabberwockies is the same as the mean sleep total for all animals.
+Ha: the alternative hypothesis - the mean sleep total for Jabberwockies is not the same as the mean sleep total for all animals.
+
+The two competing hypothesis written mathematically:
+H0 -> μsleep_total = 7
+Ha -> μsleep_total ≠ 7
+
+```{r}
+#Calculating the mean of the sleep total of all animals which will be the observed statistic 
+observed_stat <- msleep %>% 
+  summarise(mean_sleep_total = mean(sleep_total))
+
+observed_stat
+```
+Hypothesis Test
+
+```{r}
+library(infer)
+#Setting the alpha level as 0.05 (α=0.05) by convention.
+```
+
+```{r}
+#Generating the null sampling distribution, which is the sampling distribution we would expect if H0 were true.
+#Using the infer package to centre the null distribution at 7 as this is the null hypothesis: the mean sleep_total is equal to 7.
+null_distribution <- msleep %>%
+  specify(response = sleep_total) %>%
+  hypothesize(null = "point", mu = 7) %>%
+  generate(reps = 10000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+```
+
+```{r}
+#Visualising the null distribution
+null_distribution %>% 
+  visualise(bins = 30)
+```
+
+```{r}
+#Plotting the observed stat from our sample (mean_sleep_total = 10.43)
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat$mean_sleep_total, direction = "both")
+
+#The direction = "both" argument has been applied as we are investigating differences from 7 in either direction as the alternative hypothesis was outlined as being not equal to 7 (Ha -> sleep_total ≠ 7)
+```
+
+
+```{r}
+#Calculating the p-value
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = observed_stat$mean_sleep_total, direction = "both")
+p_value
+```
+
+As the calculated p-value is below the set α level of 0.05, this demonstrates that there is a significant difference between the mean total sleep for all animals and the mean total sleep for Jabberwockies. As a result, the null hypothesis is rejected in favour of the alternative hypothesis.
+
+----------------
+Perform an appropriate statistical test to determine whether omnivores sleep for significantly longer than herbivores, on average.
+
+The two competing hypothesis:
+H0: the null hypothesis - the mean sleep total for omnivores is the same as the mean sleep total for herbivores
+Ha: the alternative hypothesis - the mean sleep total for omnivores is not the same as the mean sleep total for herbivores.
+
+The two competing hypothesis written mathematically:
+H0 -> μsleep_total = 0
+Ha -> μsleep_total > 0 
+Setting the alpha level as 0.05 (α=0.05) by convention
+```{r}
+#Filtering the data to show only omnivores and herbivores.
+omni_herbivore <- msleep %>% 
+  select(vore, sleep_total) %>% 
+  filter(vore == "omni" | vore == "herbi")
+
+omni_herbivore
+```
+
+```{r}
+#Calculating the mean of the sleep total of omnivores and herbivores, which will be the observed statistic 
+omni_herbivore %>% 
+  group_by(vore) %>% 
+  summarise(mean_sleep_total = mean(sleep_total)) 
+```
+
+```{r}
+#Generating a box plot
+omni_herbivore %>%
+  ggplot(aes(y = sleep_total, x = vore)) +
+  geom_boxplot()
+```
+
+From the boxplot, there is some overlap from the two groups and the medians are similar. 
+
+```{r}
+#Calculating the observed statistic (the difference in means of total sleep for omnivores and herbivores.)
+observed_stat <- omni_herbivore %>% 
+  specify(response = sleep_total, explanatory = vore) %>% 
+  calculate(stat = "diff in means", order = c("omni", "herbi"))
+
+observed_stat
+```
+
+
+```{r}
+#Using permutation to generate the null distribution. 
+null_distribution <- omni_herbivore %>% 
+  specify(response = sleep_total, explanatory = vore) %>% 
+  hypothesize(null = "independence") %>% 
+  #the null hypothesis suggests there is not relationship between sleep total and vore, hence the independence test is used
+  generate(reps = 10000, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("omni", "herbi")) 
+
+null_distribution
+```
+
+```{r}
+#Visualising the distribution by carrying out a one-tailed test as the alternative hypothesis (Ha) is that the difference is greater than zero.
+null_distribution %>%
+  visualise() +
+  shade_p_value(obs_stat = observed_stat, direction = "right")
+#The direction = "right" argument has been applied as we are investigating whether the observed stat is greater than zero (Ha -> sleep_total > 0)
+```
+
+```{r}
+#Calculating the p-value.
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = observed_stat, direction = "right")
+
+p_value
+```
+
+The p-value is greater than the alpha level which was set at the conventional value of 0.05. As a result, we fail to reject the null hypothesis (H0) as there is no significant evidence in the data to suggest that omnivores sleep for significantly longer than herbivores, on average.
+
+------------
+Perform an appropriate statistical test to determine whether the proportion of domesticated animal types in the population of animal types is greater than 5%
+. 
+[Hint - think about creating an is_domesticated variable for the analysis]
+
+H0 -> μconservation = 0.05
+Ha -> μconservation > 0.05 
+Setting the alpha level as 0.05 (α=0.05) by convention
+
+```{r}
+prop_convention <- msleep %>% 
+  mutate(is_domesticated = if_else(conservation == "domesticated", "1", "0")) %>%
+  mutate(is_domesticated = replace_na(is_domesticated, "0"))
+prop_convention
+```
+```{r}
+#Using simulation to generate the null distribution
+null_distribution <- prop_convention %>%
+  specify(response = is_domesticated, success = "1") %>% 
+  hypothesize(null = "point", p = 0.05) %>% #specifying that the probability is 0.07
+  generate(reps = 10000, type = "simulate") %>%
+  calculate(stat = "prop") #specifying that the stat is proportion and not mean
+
+head(null_distribution)
+```
+```{r}
+#Visualising the distribution
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat, direction = "right") 
+```
+The observed statistic is quite far to the right hand side of the null distribution.
+
+```{r}
+#Calculating the observed stat
+observed_stat <- prop_convention %>% 
+  specify(response = is_domesticated, success = "1") %>% 
+  calculate(stat = "prop")
+
+observed_stat
+```
+```{r}
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = observed_stat, direction = "right")
+
+p_value
+```
+The p-value is less than our significance level of 0.05, i.e. the cut-off beyond which we reject H0. As a result, we reject H0 in favour of Ha. Based on the data, the proportion of domesticated animal types in the population of animal types is greater than 5%.
+-----------------
+1.2 Hypothesis testing - interpretation
+1.2.1 Defining the Hypothesis
+For the following three business problems write out H0
+ and Ha in both mathematical notation and in words. Also state the method you would use to generate the null distribution (bootstrap, permutation or simulation).
+
+1. You work for a independent coffee shop. The boss tells you that she thinks that around 40% of people in the town (population 30,000) know of the coffee shop, but you are skeptical of the estimate. You conduct a random survey of 200 people in the town, asking if respondents are aware of your coffee shop. You want to use the sample to test the hypothesis that 40% or more of the town’s population have heard of the coffee shop.
+
+The two competing hypothesis:
+H0: the null hypothesis - the proportion of people in the town who know of the coffee shop is 0.4.
+Ha: the alternative hypothesis - the proportion of people in the town who know of the coffee shop is greater than 0.4.
+
+The two competing hypothesis written mathematically:
+H0 -> μprop_campaign = 0.4
+Ha -> μprop_campaign > 0.4
+
+A simulation test should be carried out to generate the null distribution.
+--------------
+2. You work for a website design company and have performed an A/B test on the position of a banner on a website promoting a particular item. 
+
+You selected five days at random last month and then randomly selected 200
+ of each sampled day’s users into group A and another 200 of that day’s users into group B. Group A continued to be shown the banner at the right hand side of the webpage (its usual position) while group B was shown the banner at the top of the page. You monitored each sampled user’s interactions with the website, in particular the ‘click through rate’ (CTR) on the banner, i.e. what proportion of sampled users clicked on the banner. You want to use the sampled data to test the hypothesis that website users overall are more likely to click on the banner if positioned at the top of the page
+
+The two competing hypothesis:
+H0: the null hypothesis - the proportion of banner clicks shows no significant difference between the two positions on the website.
+Ha: the alternative hypothesis - the proportion of banner clicks differs significantly.
+
+The two competing hypothesis written mathematically:
+H0 -> πCTR_usual_position - CTR_top = 0
+Ha -> πCTR_usual_position - CTR_top ≠ 0
+
+A permutation test should be carried out to generate the null distribution.
+----------
+3. You work as an analyst for a car manufacturing company - they have specific standards they must meet for standards and regulation purposes. You have been asked to check the quality control of the manufacture of a particular car part. You have been given data on a sample of 200 parts produced over the period of a week (the sampled parts were pulled at random from the production line and measured: the factory produced a lot more than 200 parts that week). The specification of the part stipulates a width of 145mm, and the manufacturing process is said to have ‘drifted’ if the mean width of parts differs significantly from 145mm. You want to use the sampled measurements to test whether the process overall has drifted.
+
+The two competing hypothesis:
+H0: the null hypothesis - the mean of the sample of parts is equal to 145mm.
+Ha: the alternative hypothesis - the mean of the sample of parts is not equal to 145mm.
+
+The two competing hypothesis written mathematically:
+H0 -> μpart_mean_width = 145
+Ha -> μpart_mean_width ≠ 145
+
+A bootstrap test should be carried out in order to derive estimates of the standard errors and confidence intervals.
+------------------------------
+1.2.2 Interpreting the results
+For the 3 business problems stated above, imagine we performed you got the following p-values (with the given significance levels) write out your interpretation of the results.
+
+1. Coffee shop problem. Significance level: 0.05, calculated p-value: 0.07
+
+As the p-value is greater than the significance level, we fail to reject the null hypothesis. This would suggest that the proportion of people in the town who know of the coffee shop is 0.4.
+
+2. Website company problem. Significance level: 0.01, p-value: 0.006.
+
+As the p-value is less than the significance level, we reject the null hypothesis in favour of the alternative hypothesis. The proportion of banner clicks differs significantly after moving the banner to the top of the website page.
+
+3. Manufacturing company problem. Significance level: 0.05, p-value: 0.55
+
+As the p-value is greater than the significance level, we fail to reject the null hypothesis. The mean of the sample of parts is equal to 145mm.
