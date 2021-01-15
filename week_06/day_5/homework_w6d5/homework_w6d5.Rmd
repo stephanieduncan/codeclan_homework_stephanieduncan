@@ -53,7 +53,6 @@ msleep %>%
   ggplot(aes(x = sleep_total)) +
   geom_histogram(col = "white", fill = "blue", bins = 30)
 
-#The distribution is not skewed and is bi-modal.
 ```
 ```{r}
 #Generating a box plot of the data
