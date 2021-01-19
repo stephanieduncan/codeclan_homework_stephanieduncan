@@ -213,19 +213,14 @@ prop_convention
 #Using simulation to generate the null distribution
 null_distribution <- prop_convention %>%
   specify(response = is_domesticated, success = "1") %>% 
-  hypothesize(null = "point", p = 0.05) %>% #specifying that the probability is 0.07
+  hypothesize(null = "point", p = 0.05) %>% #specifying that the probability is 0.05
   generate(reps = 10000, type = "simulate") %>%
   calculate(stat = "prop") #specifying that the stat is proportion and not mean
 
 head(null_distribution)
 ```
-```{r}
-#Visualising the distribution
-null_distribution %>%
-  visualise(bins = 30) +
-  shade_p_value(obs_stat = observed_stat, direction = "right") 
-```
-The observed statistic is quite far to the right hand side of the null distribution.
+
+
 
 ```{r}
 #Calculating the observed stat
@@ -235,6 +230,15 @@ observed_stat <- prop_convention %>%
 
 observed_stat
 ```
+
+```{r}
+#Visualising the distribution
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat, direction = "right") 
+#The observed statistic is quite far to the right hand side of the null distribution.
+```
+
 ```{r}
 p_value <- null_distribution %>%
   get_p_value(obs_stat = observed_stat, direction = "right")
@@ -270,8 +274,8 @@ H0: the null hypothesis - the proportion of banner clicks shows no significant d
 Ha: the alternative hypothesis - the proportion of banner clicks differs significantly.
 
 The two competing hypothesis written mathematically:
-H0 -> πCTR_usual_position - CTR_top = 0
-Ha -> πCTR_usual_position - CTR_top ≠ 0
+H0 -> πCTR_top - CTR_right = 0
+Ha -> πCTR_top - CTR_right ≠ 0
 
 A permutation test should be carried out to generate the null distribution.
 ----------
@@ -292,12 +296,78 @@ For the 3 business problems stated above, imagine we performed you got the follo
 
 1. Coffee shop problem. Significance level: 0.05, calculated p-value: 0.07
 
-As the p-value is greater than the significance level, we fail to reject the null hypothesis. This would suggest that the proportion of people in the town who know of the coffee shop is 0.4.
+As the p-value is greater than the significance level, we fail to reject the null hypothesis. This would suggest that we do not have enough that the proportion of people in the town who know of the coffee shop is greater than 0.4.
 
 2. Website company problem. Significance level: 0.01, p-value: 0.006.
 
-As the p-value is less than the significance level, we reject the null hypothesis in favour of the alternative hypothesis. The proportion of banner clicks differs significantly after moving the banner to the top of the website page.
+As the p-value is less than the significance level, we reject the null hypothesis in favour of the alternative hypothesis. There is sufficient evidence to suggest that the proportion of banner clicks differs significantly after moving the banner to the top of the website page.
 
 3. Manufacturing company problem. Significance level: 0.05, p-value: 0.55
 
-As the p-value is greater than the significance level, we fail to reject the null hypothesis. The mean of the sample of parts is equal to 145mm.
+As the p-value is greater than the significance level, we fail to reject the null hypothesis. There is insufficient evidence to suggest that the mean of the sample of parts differs from 145mm.
+-------------
+Extension
+2.5 Association rules
+For the first section we are interested in the purchase of two particular items:
+
+item A - ‘HEART OF WICKER SMALL’ (StockCode 22469)
+item B - ‘LARGE CAKE TOWEL PINK SPOTS’ (StockCode 21110)
+
+```{r}
+library(tidyverse)
+library(janitor)
+transactions <- read_csv("data/online_retail_subset.csv") %>%  clean_names()
+```
+
+1. Calculate the support for item A
+ (this will be the support for a single item)
+ 
+ sup(A)=P(A)= (number of transactions involving A) divided by the total number of transactions
+
+```{r}
+a_transactions <- transactions %>% 
+  filter(stock_code == "22469") %>% 
+  group_by(invoice_no) %>% 
+  summarise(number_of_a_transactions = n()) %>% 
+  nrow()
+
+total_transactions <- transactions %>% 
+  group_by(invoice_no) %>% 
+  summarise(total_transactions = sum(n())) %>% 
+  nrow()
+
+support_for_a <- a_transactions/total_transactions
+```
+
+2. Calculate the support and confidence for rule  (A→B)
+
+Support
+ sup(A→B)=P(A and B being purchased together)= (number of transactions involving A and B) divided by the total number of transactions
+ 
+```{r}
+b_transactions <- transactions %>% 
+  filter(stock_code == "21110") %>% 
+  group_by(invoice_no) %>% 
+  summarise(number_of_b_transactions = n()) %>% 
+  nrow()
+
+total_transactions <- transactions %>% 
+  group_by(invoice_no) %>% 
+  summarise(total_transactions = sum(n())) %>% 
+  nrow()
+
+support_for_b <- b_transactions/total_transactions
+```
+ 
+```{r}
+ab_transactions <- transactions %>% 
+  filter(stock_code == "21110" | stock_code == "22469") %>% 
+  group_by(invoice_no, stock_code) %>% 
+  summarise(number_of_transactions = n()) %>% 
+  group_by(invoice_no) %>% 
+  summarise(number_ab_transactions = n()) %>% 
+  nrow()
+
+support_for_ab <- ab_transactions/total_transactions
+```
+
