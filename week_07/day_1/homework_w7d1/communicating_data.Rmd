@@ -293,7 +293,7 @@ leaflet(nyc_bikes) %>%
                    lat = ~start_lat)
 ```
 
-
+### The Top 5 Most Popular Start Stations
 
 ```{r}
 nyc_bikes %>% 
