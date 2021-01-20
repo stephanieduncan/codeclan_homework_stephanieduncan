@@ -65,11 +65,11 @@ nyc_bikes %>%
         x = "\n Month",
         y = "Hire Counts"
       ) +
-  scale_y_continuous(limits = c(0, 700))
+  scale_y_continuous(limits = c(0, 800))
 ```
 
 
-The graph shows bike usage is low in January and February, followed by a continuous increase from February through to August, where bike hire peaks to over 600 hires. From August, there is a decrease in bike usage through to December. The months with the lowest performance are January, February, March and December where there are below 200 hires.
+The graph shows bike usage is low in January and February, followed by a continuous increase from February through to August, where bike hire peaks to over 700 hires. From August, there is a decrease in bike usage through to December. The months with the lowest performance are January, February, March and December where there are below 200 hires.
 
 ```{r}
 nyc_bikes %>% 
