@@ -3,20 +3,25 @@ title: "Communicating Data"
 author: "Stephanie Duncan"
 date: "18/01/2021"
 output: html_document
+code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = F, message = F, echo = F)
 ```
 
-1 Business questions
-In your report, please consider the following questions:
 
-1. What is the pattern of bike hires over time (e.g. within a year, month, week, or day)?
-2. Do bike hire patterns differ between bike rider demographics? (e.g. gender, type of trip, age)
-3. Any other insights?
+# NYC Citi Bike Trips  
+A sample of data from NYC Citi Bike shows event data on the usage of 10 bikes throughout 2018. As well as event data, the sample data includes information on the customers and subscribers hiring bikes such as gender and birth year. A customer is defined as being someone who has purchased a 24-hour or 3-day pass, whereas a subscriber purchases an annual subscription.
 
-For every visualisation you create, consider whether and how it can provide actionable insights to the business (in this case NYC Citi Bike, a bike share operator) and how it relates to key performance indicators (in this case the overall objective is to increase bike hires). Also, remember to include a description and interpretation of each plot so as to explain the context and insights.
+A variety of data visualisations were created to understand the following:
+
+1. The pattern of bike hires over time
+2. Bike hire patterns and bike rider demographics:
+    1. gender
+    2. type of user
+    3. age
+3. The geographical spread of the start points of bike hires
 
 ```{r}
 library(tsibbledata)
@@ -27,15 +32,10 @@ library(slider)
 nyc_bikes_df <- nyc_bikes
 ```
 
-```{r}
-names(nyc_bikes)
-```
+## 1. The Pattern of Bike Hires over Time
 
-NYC Citi Bike Trips
-A sample of data from NYC Citi Bike, showing event data on the usage of 10 bikes throughout 2018. As well as event data, the sample data includes information on the customers and subscribers using the bikes such as gender and birth year. A customer is defined as being someone who has purchased a 24-hour or 3-day pass, whereas a subscriber purchases an annual subscription.
 
 ```{r}
-#1. What is the pattern of bike hires over time (e.g. within a year, #month, week, or day)?
 
 nyc_bikes <- nyc_bikes %>% 
   #using the start_time column to create columns year, date, month and date
@@ -43,9 +43,10 @@ nyc_bikes <- nyc_bikes %>%
     year = year(start_time),
     date = date(start_time),
     #Ensuring the month shows as the name rather than a number
-    month = month(start_time, label = TRUE, abbr = FALSE)
+    month = month(start_time, label = TRUE, abbr = FALSE),
+    day = wday(date, label = TRUE, week_start = 1)
   )
-nyc_bikes
+
 ```
 
 ```{r}
@@ -56,112 +57,259 @@ nyc_bikes %>%
   ggplot() +
   aes(x = month, y = hire_counts) +
   geom_line() +
-  geom_point(colour = "dark green") +
+  geom_point(colour = "#25CDD6") +
   theme_light() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(
         title = "Monthly NYC Citi Hire Count in 2018",
         x = "\n Month",
         y = "Hire Counts"
-      )
+      ) +
+  scale_y_continuous(limits = c(0, 700))
 ```
 
-The graph shows bike usage is low in January, followed by a continuous increase from February through to August then a decrease in bike usage from August to December. 
+
+The graph shows bike usage is low in January and February, followed by a continuous increase from February through to August, where bike hire peaks to over 600 hires. From August, there is a decrease in bike usage through to December. The months with the lowest performance are January, February, March and December where there are below 200 hires.
+
 ```{r}
 nyc_bikes %>% 
   index_by(date) %>% 
-  summarise(hire_counts = sum(n())) %>% 
+  summarise(hire_counts = n()) %>% 
   ggplot() +
   aes(x = date, y = hire_counts) +
-  geom_line(colour = "dark green") +
-  geom_point(colour = "dark green") +
+  geom_line(colour = "#25CDD6") +
   theme_light() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(
-        title = "NYC Citi Hire Count in 2018",
-        x = "\n Date",
-        y = "Hire Counts"
-      )
-```
-```{r}
-#The graph shows an irregular pattern for bike usage over the year.
-
-```
-
-```{r}
-#Hire counts by day
-nyc_bikes %>% 
-  index_by(year) %>% 
-  summarise(hire_counts = sum(n()))
-```
-```{r}
-ggplot(nyc_bikes) + 
-  geom_histogram(aes(x = date, fill = type), col = "white") + 
-  facet_wrap(~ type, ncol = 1) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_light() +
-  labs(
-        title = "NYC Citi Hire Count by User Type",
+        title = "NYC Citi Hire Count over the Year 2018",
         x = "\n Date",
         y = "Hire Counts"
       ) +
-  theme(legend.position = "none")
+   scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-The graph shows that there is a significantly higher number of subscribers hiring bikes than customers. 
+
+After taking a closer look at hire count over the year, the graph shows an irregular pattern for bike usage.
 
 ```{r}
-ggplot(nyc_bikes) + 
-  geom_histogram(aes(x = date, fill = type), col = "white") +
+nyc_bikes %>% 
+  ggplot() +
+  geom_bar(aes(x = day, fill = type), stat = "count") +
+  theme_light() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+        title = "NYC Citi Hire Count by Weekday",
+        x = "\n Day",
+        y = "Hire Counts",
+        fill = "Type"
+      ) 
+```
+
+
+There are more bike hires on working days than there are at weekends for subscribers, whereas more customers hire a bike on Saturdays and Sundays than during the week.  
+
+
+## 2. Bike Hire Patterns by Bike Rider Demographics
+### 2.1 Bike Hire Patterns by User Type
+
+```{r}
+library(scales)
+
+nyc_bikes %>%
+  mutate(bike_id_new = as.character(bike_id)) %>%
+  index_by(date) %>%
+  group_by(type) %>%
+  summarise(hire_count = n()) %>% 
+ggplot() + 
+  aes(x = date, y = hire_count, group = type, color = type) + 
+  geom_line() +
   scale_fill_brewer(palette = "Set2") +
   theme_light() +
   labs(
         title = "NYC Citi Hire Count by User Type",
         x = "\n Date",
         y = "Hire Counts",
-        fill = "Type"
+        colour = "Type"
       ) +
-  scale_x_date(date_breaks = "1 month") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  scale_y_continuous(limits = c(0, 50)) +
+  scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+
 ```
-The graph shows subscribers hiring throughout the entire year, whereas customers did not hire a bike in January, February, November or December.
+
+
+After grouping bike hires by user, the graph again shows irregularity, however it can be seen that there is significantly more subscribers hiring bikes than customers. Subscribers are using their hired bike throughout the entire year, whereas customers hired a bike mostly between April and October. Very few customers hired a bike from January to March, and November and December.
+
 
 ```{r}
 nyc_bikes %>% 
-  filter(type == "Customer") %>% 
-  index_by(date)
+  index_by(year) %>% 
+  group_by(type) %>% 
+  summarise(hire_counts = n()) %>% 
+ggplot() + 
+  geom_col(aes(x = type, y = hire_counts, fill = type)) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_light() +
+  labs(
+        title = "NYC Citi Hire Count by User Type",
+        subtitle = "2018",
+        x = "\n User Type",
+        y = "Hire Counts") +
+  theme(legend.position = "none")
+
+#315/4268
+```
+
+
+There are almost a total of 4000 subscribers hiring bikes, compared to 315 customers (7.4%).
+
+```{r}
+#nyc_bikes %>% 
+ # index_by(year) %>% 
+  #group_by(type) %>% 
+  #summarise(hire_counts = n())
+```
+
+
+```{r}
+#ggplot(nyc_bikes) + 
+ #geom_histogram(aes(x = date, fill = type), col = "white") +
+  #scale_fill_brewer(palette = "Set2") +
+  #theme_light() +
+  #labs(
+   #     title = "NYC Citi Hire Count by User Type",
+    #  x = "\n Date",
+     #  y = "Hire Counts",
+      #  fill = "Type"
+      #) +
+   #scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y") +
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 
 
 ```{r}
-ggplot(nyc_bikes) + 
-  geom_histogram(aes(x = date, fill = gender), col = "white") + 
+#nyc_bikes %>% 
+ # filter(type == "Customer") %>% 
+  #index_by(month) %>% 
+  #summarise(hire_count = n()) %>% 
+  #ggplot() +
+#geom_col(aes(x = month, y = hire_count)) +
+ # scale_fill_brewer(palette = "Set2") +
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  #theme_light()
+  
+```
+
+### 2.2 Bike Hire Patterns by Gender of User 
+```{r}
+nyc_bikes %>% 
+  index_by(date) %>% 
+  group_by(gender) %>% 
+  summarise(hire_count = n()) %>% 
+ggplot() + 
+  geom_line(aes(x = date, y = hire_count, colour = gender)) + 
   facet_wrap(~ gender, ncol = 1) +
   scale_fill_brewer(palette = "Set2") +
   theme_light() +
   labs(
         title = "NYC Citi Hire Count by Gender",
+        subtitle = "2018",
         x = "\n Date",
         y = "Hire Counts"
       ) +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+   scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
-The graph shows that significantly more bikes are hired by males than females or unknown genders.
+
+
+The graph shows that significantly more bikes are hired by males than females and those of unknown gender. Data for unknown genders have been included in this analysis so as not to lose a significant proportion of the data, which may have introduced bias.
 
 
 ```{r}
-ggplot(nyc_bikes) + 
-  geom_histogram(aes(x = birth_year, fill = gender), col = "white") +
+#nyc_bikes %>% 
+ # filter(!gender == "Unknown") %>% 
+#ggplot() +  
+ # geom_histogram(aes(x = birth_year, fill = gender), col = "white") +
+  #scale_fill_brewer(palette = "Set2") +
+  #theme_light() +
+  #labs(
+   #     title = "NYC Citi Hire Count by Birth Year",
+    #    x = "\n Birth Year",
+     #   y = "Hire Counts",
+      #  fill = "Gender"
+      #) +
+  #scale_x_continuous(limits = c(1940, 2000)) 
+```
+### 2.3 Bike Hire Patterns by User Age
+```{r}
+nyc_bikes %>% 
+  mutate(age = (year - birth_year)) %>%
+  index_by(year) %>% 
+  group_by(age, gender) %>% 
+  #summarise(total = n())
+ggplot() +  
+  geom_histogram(aes(x = age, fill = gender), col = "white") +
   scale_fill_brewer(palette = "Set2") +
   theme_light() +
   labs(
-        title = "NYC Citi Hire Count by Birth Year",
-        x = "\n Date",
+        title = "NYC Citi Hire Count by User Age",
+        x = "\n User Age",
         y = "Hire Counts",
         fill = "Gender"
       ) +
-  scale_x_continuous(limits = c(1940, 2000)) 
+  scale_x_continuous(limits = c(20, 70))
 ```
 
-The graph shows there are a higher number of users born between 1980 and 1990 hiring bikes.
+
+The graph shows there are similar distributions for both males and females, however a higher proportion of males hire bikes than females. Most bike hires are from males and females aged 26-38 years old. The graph also shows a considerable number of users aged 49 of unknown gender hiring bikes. 
+
+## 3. The Geographical Spread of the Start Points of Bike Hires
+
+```{r}
+#nyc_bikes %>% 
+ #index_by(year) %>% 
+  #group_by(start_station) %>% 
+  #summarise(hire_count = n()) %>% 
+  #arrange(desc(hire_count)) %>% 
+  #head(5)
+
+#Start station 3186 is the most popular, followed by 3203, 3195, 3183 and 3202.
+
+```
+
+
+```{r}
+library(leaflet)
+
+
+# create leaflet map
+leaflet(nyc_bikes) %>%
+  addTiles() %>%
+  addMarkers(lng = ~start_long,
+                   lat = ~start_lat)
+```
+
+
+
+```{r}
+nyc_bikes %>% 
+  filter(start_station == c("3186", "3203", "3195", "3183", "3202")) %>% 
+leaflet() %>%
+  addTiles() %>%
+  addMarkers(lng = ~start_long,
+                   lat = ~start_lat)
+```
+The geographical spread of the start points of bike hires shows a prominent cluster around Grove Street and the coast of the Hudson River. Start station 3186 is the most popular (Grove Street), followed by 3203, 3195, 3183 and 3202.
+
+
+# Conclusions/Recommendations
+1. For January, February, March and December, the months where hire counts are lowest, consideration should be made to make hiring a bike during these months more appealing to users perhaps by charging a lower rate for customers. 
+
+2. On working days, hire count from subscribers is consistently high, however there is opportunity to increase the number of bike hires from customers on working days.
+
+3. As start stations are most popular around Grove Street and the coast of the Hudson River, more stations could be added to these areas to increase hire counts.
+
