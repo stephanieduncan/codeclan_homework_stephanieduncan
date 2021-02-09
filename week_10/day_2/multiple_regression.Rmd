@@ -1,0 +1,153 @@
+---
+title: "Multiple Regression"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+diamonds <- read_csv("data/diamonds.csv")
+```
+
+```{r}
+head(diamonds)
+```
+```{r}
+glimpse(diamonds)
+```
+```{r}
+names(diamonds)
+```
+
+```{r}
+alias(lm(carat ~ ., data = diamonds))
+
+#No alias are reported.
+```
+
+#Using ggpairs to investigate if there is a strong correlation between the physical dimensions x, y and z with carat.
+
+```{r}
+library(GGally)
+ggpairs(diamonds)
+```
+
+Examining the pairs plots above, there is a very strong correlation between carat and x, y & z (0.975, 0.952 & 0.953 respectively).
+
+```{r}
+#Removing columns x, y & z from the dataset
+diamonds_trim <- diamonds %>% 
+  select(-c("x", "y", "z"))
+```
+
+```{r}
+ggpairs(diamonds_trim)
+```
+
+
+
+Building a regression model for the price of a diamond in terms of the possible predictor variables in the dataset.
+* The response will be price.
+* The predictor will be carat.
+* The simple linear regression equation is price^ = intercept + b(carat) x carat
+* The hypothesis is that price is more likely to be higher as carat increases.
+
+
+```{r}
+diamonds_trim %>% 
+  ggplot(aes(x = carat, y = price)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+```
+
+From the plot, it can be seen that there is a linear relationship: as the carat increases, the price of diamonds increases.
+
+Checking if cut helps to predict the price of diamonds.
+
+```{r}
+diamonds_trim %>% 
+  ggplot(aes(x = cut, y = price)) +
+  geom_boxplot()
+```
+Checking if clarity helps to predict the price of diamonds.
+
+```{r}
+diamonds_trim %>% 
+  ggplot(aes(x = clarity, y = price)) +
+  geom_boxplot()
+```
+
+Checking if colour helps to predict the price of diamonds.
+
+```{r}
+diamonds_trim %>% 
+  ggplot(aes(x = color, y = price)) +
+  geom_boxplot()
+```
+
+```{r}
+#Using dummy_cols() to generate dummies for cut, clarity and colour.
+library(fastDummies)
+library(janitor)
+```
+
+```{r}
+diamonds_dummies <- diamonds_trim %>% 
+  dummy_cols(select_columns = c("cut", "color", "clarity"), remove_first_dummy = TRUE) %>% 
+  clean_names()
+  
+```
+
+```{r}
+#Checking the number of unique values for cut, color and clarity columns
+diamonds_dummies %>% 
+distinct(cut)
+
+diamonds_dummies %>% 
+distinct(color)
+
+diamonds_dummies %>% 
+distinct(clarity)
+
+#cut - 5
+#colour - 7
+#clarity - 8
+
+#Comparing the number of unique values we see that when using the dummy columns function, this has taken 1 name away from each of the columns as this can be predicted by the others remaining in each column. 
+
+#cut - 4
+#colour - 6
+#clarity - 7
+
+```
+
+
+```{r}
+#Goodness-of-fit metrics:-
+
+library(ggfortify)
+
+model <- lm(price ~ carat, data = diamonds_trim)
+
+autoplot(model)
+```
+
+```{r}
+summary(model)
+```
+
+#Adding clarity to the model
+```{r}
+model2 <- lm(price ~ carat + clarity, data = diamonds_trim)
+```
+
+```{r}
+autoplot(model2)
+```
+
+```{r}
+summary(model2)
+```
