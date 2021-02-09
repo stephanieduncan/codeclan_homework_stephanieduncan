@@ -1,0 +1,178 @@
+---
+title: "Linear Regression"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(modelr)
+project_management <- read.csv("data/project_management.csv")
+```
+
+Plotting actual_length as the dependent variable (y by convention), and estimated_length as the independent variable (x by convention).
+```{r}
+project_management %>% 
+  ggplot(aes(x = estimated_length, y = actual_length)) +
+  geom_point()
+```
+
+```{r}
+#Calculating the correlation coefficient of estimated_length and actual_length and interpreting the obtained value.
+project_management %>% 
+  summarise(cor(estimated_length, actual_length))
+
+#The correlation of the coefficient of estimated_length and actual_length is 0.8046 which means the correlation is very strong.
+```
+
+Creating a simple linear regression using actual_length as the dependent variable, and estimated_length as the independent variable. 
+
+```{r}
+model <- lm(formula = actual_length ~ estimated_length, data = project_management)
+
+model
+
+summary(model)
+```
+The equation of the regression line is:
+actual_length = 1.223 * estimated_length + 1.416
+
+A 1 day increase in estimated_length is associated with a 1.2235 day increase in actual_length, i.e. the company is underestimating job lengths.
+
+The r^2 (coefficient of determination) value (0.6475) means that 64.75% of the variation in actual_length can be predicted from (explained by) the variation in estimated_length.
+```{r}
+library(broom)
+library(ggfortify)
+
+project_management %>% 
+  ggplot(aes(x = estimated_length, y = actual_length)) +
+  geom_point() +
+  geom_abline(
+    intercept = model$coefficients[1],
+    slope = model$coefficients[2],
+    col = "red"
+  )
+
+#or 
+#project_management %>% 
+#ggplot(aes(x = estimated_length)) +
+#  geom_point(aes(y = actual_length)) +
+#  geom_line(aes(y = pred), col = "red")
+
+```
+
+```{r}
+glance(model)
+```
+
+The relationship is statistically significant as the p-value of the slope is much less than the conventional value of α = 0.05.
+
+```{r}
+tidy(model)
+```
+
+```{r}
+autoplot(model)
+```
+Aside from outliers (certainly point 5, and perhaps point 18), the diagnostic plots looks reasonable. The ‘Residuals vs Fitted’ plot reveals independent residuals, the ‘Normal Q-Q’ plot looks fine, and there is no systematic upward or downward trend in the the ‘Scale-Location’ plot.
+
+```{r}
+project_management %>% 
+  ggplot(aes(x = estimated_length, y = actual_length)) +
+  geom_point() +
+  geom_abline(
+    intercept = model$coefficients[1],
+    slope = model$coefficients[2],
+    col = "red"
+  ) + 
+  geom_text(aes(label = 1:nrow(project_management)), nudge_x = 0.2, nudge_y = 1)
+```
+Interpreting the Residuals vs Leverage diagnostic plot.
+Points 5 & 18 are outliers.
+
+```{r}
+#Plot of Cook’s distance
+autoplot(model, which = 4)
+
+#The Cook's distance plot shows that point 5 is an influential outlier as it lies above 1. Point 18 is a non-influential outlier.
+```
+
+
+```{r}
+#Creating a two-by-two diplay of the model plots (using Base R function)
+par(mfrow = c(2,2))
+plot(model)
+```
+
+Obtaining the intercept and regression coefficient of estimated_length for a simple linear model fitted to data omitting one of the non-influential outlier points.
+```{r}
+non_influential_omitted <- project_management %>% 
+  slice(-18)
+
+non_influential_omitted_model <- lm(formula = actual_length ~ estimated_length, data = non_influential_omitted)
+
+non_influential_omitted_model
+```
+By removing the non-influential outlier (18), the intercept is now 1.591, compared to 1.416 previously. Percentage Change of 12.36%
+
+```{r}
+((1.591-1.416)/1.416) * 100
+((1.223-1.221)/1.223) * 100
+```
+
+#The coefficient is now 1.221, compared to 1.223 previously (percentage change of 0.16%). 
+
+```{r}
+non_influential_omitted %>% 
+  ggplot(aes(x = estimated_length, y = actual_length)) +
+  geom_point() +
+  geom_abline(
+    intercept = non_influential_omitted_model$coefficients[1],
+    slope = non_influential_omitted_model$coefficients[2],
+    col = "red"
+  ) +
+  geom_abline(
+    intercept = model$coefficients[1],
+    slope = model$coefficients[2],
+    col = "blue"
+  )
+```
+
+The regression line from the data with the omitted outlier is extremely similar to the regression line for the full data set.
+
+Obtaining the intercept and regression coefficient of estimated_length for a simple linear model fitted to data omitting one of the influential outlier points (5).
+```{r}
+influential_omitted <- project_management %>% 
+  slice(-5)
+
+influential_omitted_model <- lm(formula = actual_length ~ estimated_length, data = influential_omitted)
+
+influential_omitted_model
+```
+By removing the non-influential outlier (5), the intercept is now 4.381, compared to 1.416 previously. Percentage Change of 209.39%
+
+```{r}
+((4.381-1.416)/1.416) * 100
+((1.223-1.011)/1.223) * 100
+```
+
+#The coefficient is now 1.011, compared to 1.223 previously (percentage change of 17.33%). 
+
+```{r}
+influential_omitted %>% 
+  ggplot(aes(x = estimated_length, y = actual_length)) +
+  geom_point() +
+  geom_abline(
+    intercept = influential_omitted_model$coefficients[1],
+    slope = influential_omitted_model$coefficients[2],
+    col = "red"
+  ) +
+  geom_abline(
+    intercept = model$coefficients[1],
+    slope = model$coefficients[2],
+    col = "blue"
+  )
+```
+As can be seen from the plot above, by omitting the influential outlier, the regression line differs greatly to that of the regression line obtained from the full data set.
