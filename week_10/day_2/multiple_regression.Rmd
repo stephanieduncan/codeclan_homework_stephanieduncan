@@ -14,9 +14,11 @@ diamonds <- read_csv("data/diamonds.csv")
 ```{r}
 head(diamonds)
 ```
+
 ```{r}
 glimpse(diamonds)
 ```
+
 ```{r}
 names(diamonds)
 ```
@@ -31,7 +33,8 @@ alias(lm(carat ~ ., data = diamonds))
 
 ```{r}
 library(GGally)
-ggpairs(diamonds)
+
+ggpairs(diamonds[,c("carat", "x", "y", "z")])
 ```
 
 Examining the pairs plots above, there is a very strong correlation between carat and x, y & z (0.975, 0.952 & 0.953 respectively).
@@ -93,6 +96,11 @@ diamonds_trim %>%
 library(fastDummies)
 library(janitor)
 ```
+
+```{r}
+cor.test(diamonds$depth, diamonds$carat)
+```
+
 
 ```{r}
 diamonds_dummies <- diamonds_trim %>% 

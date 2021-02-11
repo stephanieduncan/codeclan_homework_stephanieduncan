@@ -1,0 +1,240 @@
+---
+title: "Manual Model Development"
+output: html_notebook
+---
+
+#Building an explanatory model of housing sale prices for the last few years in King Country (near Seattle) between May 2014 and May 2015.
+
+```{r}
+#Loading library and reading in the data
+library(tidyverse)
+houses <- read_csv("data/kc_house_data.csv")
+```
+
+```{r}
+names(houses)
+```
+
+```{r}
+glimpse(houses)
+```
+
+```{r}
+#Removing irrelevant columns
+houses_clean <- houses %>% 
+  select(-c("id", "sqft_living15", "sqft_lot15", "zipcode"))
+```
+
+```{r}
+#Amending "waterfront" column to show True or False values
+houses_clean <- houses_clean %>% 
+  mutate(waterfront = as.logical(waterfront))
+```
+
+```{r}
+#Creating a new renovated column to show 1 or 0 - 1 for renovated and 0 if property has not been renovated and replacing yr_renovated column with this.
+houses_clean <- houses_clean %>% 
+ mutate(renovated = ifelse(yr_renovated > 0, TRUE, FALSE)) %>% 
+  select(-yr_renovated)
+```
+
+
+```{r}
+#Condition and grade columns are categorical ordinal data types, not interval. 
+#grade - An index from 1 to 13, where 1-3 falls short of building construction and design, 7 has an average level of construction and design, and 11-13 have a high quality level of construction and design
+  houses_clean <- houses_clean %>%
+  mutate(grade = cut(grade, 
+                         breaks = c(-Inf, 3, 6, 7.5, 10, Inf), 
+                         right = TRUE,
+                         labels = c("poor", "below_avg", "avg", "above_avg", "high"))
+         )
+```
+
+```{r}
+#condition - An index from 1 to 5 on the condition of the apartment.
+houses_clean <- houses_clean %>% 
+  mutate(condition = cut(condition,
+                         breaks = c(-Inf, 3, 4, Inf),
+                         right = TRUE,
+                         labels = c("poor", "avg", "high")))
+```
+
+
+```{r}
+#Checking for aliased variables (., - with all other variables)
+
+alias(price ~ ., houses_clean)
+
+#It can be seen that sqft_basement can be computed as:-
+#sqft_basement = no sqft_above + sqft_living
+
+#sqft_basement is an aliased variable.
+```
+```{r}
+#Dropping aliased variable sqft_basement
+houses_clean <- houses_clean %>% 
+  select(-sqft_basement)
+```
+
+
+```{r}
+#Checking if all aliased variables have been removed
+alias(price ~ ., houses_clean)
+
+#All aliased variables have been removed.
+```
+
+
+```{r}
+#Splitting the dataset into numeric and non-numeric columns to assist ggpairs() to run in manageable time.
+#Adding price column to the non-numeric dataframe in order to see it's correlation with the non-numeric predictors.
+
+library(GGally)
+houses_tidy_numeric <- houses_clean %>%
+  select_if(is.numeric)
+
+houses_tidy_nonnumeric <- houses_clean %>%
+  select_if(function(x) !is.numeric(x))
+
+houses_tidy_nonnumeric$price <- houses_clean$price
+
+ggpairs(houses_tidy_numeric)
+ggpairs(houses_tidy_nonnumeric)
+```
+
+The plot above shows that sqft_living is strongly correlated with price (0.702). sqft_above is also strongly correlated with price. Grade shows some separation.
+
+```{r}
+library(modelr)
+```
+
+```{r}
+#Building a regression model for the price response variable in terms of the multiple potential predictors held in the data frame.
+
+#First predictor is sqft_living
+model1 <- lm(price ~ sqft_living, data = houses_clean)
+```
+
+```{r}
+houses_clean %>% 
+  ggplot(aes(x = sqft_living, y = price)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+
+```{r}
+summary(model1)
+```
+The residual standard error is extremely high (261500) and multiple R-squared is 0.4929. The p-value is statistically significant.
+
+```{r}
+library(ggfortify)
+#Checking plots
+autoplot(model1)
+#The plots do not look very good.
+```
+
+
+```{r}
+#Checking remaining residuals
+
+houses_remaining_resid <- houses_clean %>%
+  add_residuals(model1) %>%
+  select(-c("price", "sqft_living"))
+
+houses_remaining_resid %>%
+  ggpairs()
+```
+
+```{r}
+#Generating a model using sqft_above
+model2 <- lm(price ~ sqft_living + grade, data = houses_clean)
+```
+
+```{r}
+autoplot(model2)
+```
+
+```{r}
+summary(model2)
+```
+
+The p-value is statistically significant for high grades only. Multiple R-squared is fair, however residual standard error is high.
+
+```{r}
+#Checking waterfront
+model3 <- lm(price ~ sqft_living + grade + waterfront, data = houses_clean)
+```
+
+
+```{r}
+autoplot(model3)
+```
+
+```{r}
+summary(model3)
+```
+```{r}
+#Comparing model2 and model3
+anova(model2, model3)
+```
+
+Model 3 is better than model 2.
+
+```{r}
+#Checking waterfront with sqft_living
+model4 <- lm(price ~ sqft_living + waterfront, data = houses_clean)
+```
+
+```{r}
+autoplot(model4)
+```
+
+```{r}
+summary(model4)
+```
+```{r}
+anova(model2, model3, model4)
+```
+
+Model 3 is better than model2 & model4.
+
+```{r}
+#Adding a interactive predictor to the model - price ~ sqft_living + grade + waterfront
+
+model5 <- lm(price ~ sqft_living + grade + waterfront + grade:waterfront, data = houses_clean)
+```
+
+```{r}
+summary(model5)
+```
+
+```{r}
+autoplot(model5)
+```
+
+```{r}
+anova(model3, model5)
+```
+
+```{r}
+#Trying sqft_living:waterfront
+model6 <- lm(price ~ sqft_living + grade + waterfront + sqft_living:waterfront, data = houses_clean)
+```
+
+```{r}
+autoplot(model6)
+```
+
+```{r}
+summary(model6)
+```
+
+```{r}
+anova(model3, model6)
+```
+
+I would go with model 6:- price ~ sqft_living + grade + waterfront + sqft_living:waterfront
+
+The p-value is statistically significant and multiple R-squared has increased to 0.586. However, residual standard error is high - 236300.
