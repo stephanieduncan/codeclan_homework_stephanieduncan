@@ -1,0 +1,345 @@
+---
+title: "Model Building"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(modelr)
+# visualisation packages
+library(GGally)
+avocados_raw <- read_csv("data/avocado.csv") 
+```
+
+```{r}
+names(avocados_raw)
+```
+
+
+```{r}
+#Cleaning the variables names by amending to snake_case.
+avocados_tidy <- avocados_raw %>% 
+  clean_names 
+```
+
+```{r}
+#Taking an overview of the data to show the type of each variable
+glimpse(avocados_tidy)
+
+```
+
+```{r}
+#From the data dictionary, variable "type" is categorical and should be changed from a character variable to a factor
+avocados_tidy <- avocados_tidy %>% 
+  mutate(type = as_factor(type),
+         year = as_factor(year)) 
+```
+
+```{r}
+glimpse(avocados_tidy)
+```
+
+```{r}
+#Splitting date column into seasons
+avocados_tidy <- avocados_tidy %>% 
+  #extracting the month from the date column
+  mutate(date = str_extract(date, "\\-[\\d]{2}")) %>% 
+  mutate(date = case_when(date == "-01"| date == "-02"| date == "-12" ~ "winter",
+                          date == "-03"| date == "-04"| date == "-05" ~ "spring",
+                          date == "-06"| date == "-07"| date == "-08" ~ "summer",
+                          date == "-09"| date == "-10"| date =="-11" ~ "autumn")) 
+```
+
+
+```{r}
+#Region values
+avocados_tidy %>% 
+  distinct(region)
+```
+
+```{r}
+#Dropping region and x1 columns
+avocados_tidy <- avocados_tidy %>% 
+  select(-c("x1", "region"))
+```
+
+```{r}
+#Checking for missing values
+avocados_tidy %>% 
+  summarise(across(.fns = ~sum(is.na(.))))
+#no missing values
+```
+
+
+
+```{r}
+#Checking for aliased varaibles
+alias(average_price ~ ., data = avocados_tidy)
+
+#there are no aliased varaibles
+```
+
+```{r}
+#Checking how the average price has varied over the years
+avocados_tidy %>% 
+  ggplot(aes(x = year, y = average_price)) +
+  geom_boxplot() 
+```
+
+The median average price of avocados remained much the same for 2015 and 2016, however this increased considerably in 2017 before decreasing in 2018.The average price was highest in 2016 and lowest in 2017.
+
+```{r}
+#Checking how type relates to average_price
+avocados_tidy %>% 
+  ggplot(aes(x = type, y = average_price)) +
+  geom_boxplot() 
+```
+
+The average price varies greatly by type, with organic having the highest median and higher data points for average_price than conventional.
+
+```{r}
+#Checking how season relates to average_price
+avocados_tidy %>% 
+  ggplot(aes(x = date, y = average_price)) +
+  geom_boxplot() 
+```
+
+Average price was highest in Autumn.
+
+
+Building a predictive automated model with leaps package
+```{r}
+library(leaps)
+```
+
+```{r}
+#Using forward selection to use all variables in avocados. nvmax argument is checking all other of the 11 varaibles as predictors against average_price. 
+regsubsets_forward <- regsubsets(average_price ~ ., data = avocados_tidy, nvmax = 11, method = "forward")
+```
+
+```{r}
+#Checking a summary of the object returned
+sum_regsubsets_forward <- summary(regsubsets_forward)
+sum_regsubsets_forward
+```
+
+
+```{r}
+#Plotting the data with r2 as a penalised measure
+plot(regsubsets_forward, scale = "adjr2")
+```
+
+By looking at the output, it can be seen that the top model (displayed at top row) with the highest adjusted r^2 value is:- 
+
+average_price ~ datespring + datesummer + datewinter + x_large_bags + type_organic + year_2016 + year_2017 + year_2018 + x4046 + x4225 + x4770
+
+```{r}
+#Now using BIC to see what the model would be as BIC is more parsimonious.
+plot(regsubsets_forward, scale = "bic")
+```
+The models are the same for both BIC and using forward selection to create the regression model.
+
+```{r}
+#Plotting the r^2 values of each of the models found by forward selection as a function of number of predictors. 
+plot(sum_regsubsets_forward$rsq, type = "b")
+```
+It can be seen that as the number of predictors in the model increases, the r^2 value also increases.
+
+```{r}
+plot(sum_regsubsets_forward$bic, type = "b")
+```
+
+Using the BIC measure of fit, either using 10 or 11 predictions has the lowest BIC.
+```{r}
+#Trying 8 variables and checking with backward and exhaustive search variable selection methods
+regsubsets_backward <- regsubsets(average_price ~ ., data = avocados_tidy, nvmax = 8, method = "backward")
+regsubsets_exhaustive <- regsubsets(average_price ~ ., data = avocados_tidy, nvmax = 8, method = "exhaustive")
+regsubsets_forward <- regsubsets(average_price ~ ., data = avocados_tidy, nvmax = 8, method = "forward")
+
+plot(regsubsets_forward, scale = "adjr2")
+plot(regsubsets_backward, scale = "adjr2")
+plot(regsubsets_exhaustive, scale = "adjr2")
+
+
+```
+The exhaustive selection method shows the best model would be:
+
+average_price ~ datespring + datesummer + datewinter + type_organic  + year_2017 + year_2018 + x4046 + x4225 
+
+The backward selection method shows the best model as:
+
+average_price ~ datespring + datesummer + datewinter + total_volume + small_bags + type_organic  + year_2017 + x4225 
+
+The forward selection methodagrees with exhaustive, showing the best model as:
+
+average_price ~ datespring + datesummer + datewinter + type_organic  + year_2017 + year_2018 + x4046 + x4225 
+
+
+```{r}
+#Checking the model for statistical significance
+summary(regsubsets_exhaustive)$which[8,]
+```
+
+
+Only some levels of the categorical predictors are selected by leaps, e.g type_organic. 
+
+```{r}
+#Testing the inclusion of type using anova()
+mod_without_type <- lm(average_price ~ date + year + x4046 + x4225, data = avocados_tidy)
+
+summary(mod_without_type)
+```
+
+```{r}
+mod_with_type <- lm(average_price ~ date + year + x4046 + x4225 + type, data = avocados_tidy)
+
+summary(mod_with_type)
+```
+
+```{r}
+anova(mod_with_type, mod_without_type)
+```
+
+#The p-value is the same for both models, however multiple R^2 for the model with type is 0.4797, compared to only 0.1318 for the model without type. The residual standard error is also lower for the model with type at 0.2905, compared to a higher value of 0.3753 for the model without type. This shows that the model with type is significantly better than the model without type.
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_without_type)
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_with_type)
+```
+Plots look ok.
+
+
+```{r}
+#Checking variable transformation
+avocados_tidy %>% 
+  ggplot(aes(x = average_price)) +
+  geom_histogram()
+```
+
+```{r}
+avocados_tidy %>% 
+  ggplot(aes(x = log10(average_price))) +
+  geom_histogram()
+```
+
+```{r}
+regsubsets_exhaustive <- regsubsets(log(average_price) ~ ., data = avocados_tidy, method = "exhaustive")
+sum_regsubsets_exhaustive <- summary(regsubsets_exhaustive)
+sum_regsubsets_exhaustive
+```
+
+```{r}
+sum_regsubsets_exhaustive$bic
+```
+
+```{r}
+plot(sum_regsubsets_exhaustive$bic, type = "b")
+```
+
+#Lowest BIC occurs with 8 predictors
+```{r}
+sum_regsubsets_exhaustive$which[8, ]
+```
+
+```{r}
+#Predictors are datespring + datewinter + total_volume + small_bags + typeorganic + year2017 + year2018 + x4225
+#Carrying out anova test to check type
+mod_without_type <- lm(log(average_price) ~ . -type, data = avocados_tidy)
+summary(mod_without_type)
+```
+```{r}
+mod_with_type <- lm(log(average_price) ~ ., data = avocados_tidy)
+summary(mod_with_type)
+```
+
+```{r}
+anova(mod_without_type, mod_with_type)
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_with_type)
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_without_type)
+```
+
+```{r}
+# Count how many total rows there are in our data
+n_data <- nrow(avocados_tidy)
+
+# Make a test index
+test_index <- sample(1:n_data, size = n_data*0.2)
+
+# Use the test index to create test and training datasets
+test  <- slice(avocados_tidy, test_index)
+train <- slice(avocados_tidy, -test_index)
+```
+
+
+```{r}
+#glmulti method - the leaps method did not include interactions and did not treat categorical predictors appropriately.
+library(glmulti)
+glmulti_fit <- glmulti(
+  log(average_price) ~ ., 
+  data = train,
+  level = 2, # 2 = include pairwise interactions, 1 = main effects only (main effect = no pairwise interactions)
+  minsize = 0, # no min size of model
+  maxsize = -1, # -1 = no max size of model
+  marginality = TRUE, # marginality here means the same as 'strongly hierarchical' interactions, i.e. include pairwise interactions only if both predictors present in the model as main effects.
+  method = "g", # the problem is too large for exhaustive search, so search using a genetic algorithm
+  crit = bic, # criteria for model selection is BIC value (lower is better)
+  plotty = FALSE, # don't plot models as function runs
+  report = TRUE, # do produce reports as function runs
+  confsetsize = 100, # return best 100 solutions
+  fitfunction = lm # fit using the `lm` function
+)
+```
+
+Best model: log(average_price)~1+type+year+date+total_volume+x4046+x4225+x4770+small_bags+large_bags+x_large_bags+year:type+x4225:total_volume+x4225:x4046+x4770:total_volume+x4770:x4225+large_bags:small_bags+x_large_bags:x4046+x_large_bags:large_bags+type:date+type:x4046+type:x4225+type:large_bags+type:x_large_bags+year:date+year:x4225+year:small_bags+year:x_large_bags
+
+
+```{r}
+#Fitting the model on the train data
+mod <- lm(log(average_price)~1+type+year+date+total_volume+x4046+x4225+x4770+small_bags+large_bags+x_large_bags+year:type+x4225:total_volume+x4225:x4046+x4770:total_volume+x4770:x4225+large_bags:small_bags+x_large_bags:x4046+x_large_bags:large_bags+type:date+type:x4046+type:x4225+type:large_bags+type:x_large_bags+year:date+year:x4225+year:small_bags+year:x_large_bags, data = train)
+summary(mod)
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod)
+```
+
+```{r}
+# calculating predictor importance. 
+library(relaimpo)
+calc.relimp(mod, type = "lmg", rela = TRUE)
+```
+
+```{r}
+#Using test model we can make predictions based on our test data:
+predictions_test <- predict(mod, newdata = test)
+predictions_test
+```
+
+```{r}
+#Calculating the mean squared error by taking the average of the squares of the differences between the predictions and the actual values.
+
+mean((predictions_test - test$average_price)**2)
+```
+
+```{r}
+#Finding the mean squared error of the predictions on the training data.
+
+mean((predictions_test - train$average_price)**2)
+```
+
+The error is lower when predicting on the training data. This is what we’d expect, because it’s easier to make predictions on data that’s used for training.

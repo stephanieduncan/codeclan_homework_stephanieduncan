@@ -1,0 +1,90 @@
+---
+title: "Homework Quiz"
+author: "Stephanie Duncan"
+date: "13/02/2021"
+output: html_document
+---
+
+Homework Quiz
+1. I want to predict how well 6 year-olds are going to do in their final school exams. Using the following variables am I likely under-fitting, fitting well or over-fitting? Postcode, gender, reading level, score in maths test, date of birth, family income.
+
+Answer: Using the aforementioned variables whilst most likely result in over-fitting the model. For example, postcode and date of birth are highly unlikely to assist in predicting how an individual scores in an exam.
+
+2. If I have two models, one with an AIC score of 34,902 and the other with an AIC score of 33,559 which model should I use?
+
+Answer: The model with the lower AIC indicates a better fit.
+
+3. I have two models, the first with: r-squared: 0.44, adjusted r-squared: 0.43. The second with: r-squared: 0.47, adjusted r-squared: 0.41. Which one should I use?
+
+Answer: The model with 0.43 for adjusted r-squared should be used as it is closer to the r-squared value.
+
+4. I have a model with the following errors: RMSE error on test set: 10.3, RMSE error on training data: 10.4. Do you think this model is over-fitting?
+
+Answer: If the RMSE error on the test set is lower than the training set, it is likely that the model is over-fitting. It is expected that the RMSE error is lower when predicting on the training data as it is easier to make predictions on data that is used for training.
+
+5. How does k-fold validation work?
+
+Answer: The dataset is split by k folds (k = 10 would be 10 fold). For 10-fold cross validation, there are 10 models, each trained on 9 folds and tested on 1. It can be difficult to interpret a model fitted across several folds. However, k-fold cross validation can be used to pick a model, and then fit the chosen model on the whole data to interpret.
+
+Once the process is finished, the error can be averaged across all the test folds. This gives an accurate measure of the model performance.
+
+6. What is a validation set? When do you need one?
+
+Answer: A validation set gives a final estimate of the expected performance of a chosen model you have selected as the best model. It is a set of data used neither in training or to compare models against each other.
+
+A validation set is required when carrying out a complex model building process, particularly when comparing several types of models. This set is needed because you can end up over-fitting to the test set, by manually selecting options that work well on the test set. This is particularly common when fitting models that have hyper parameters. These are numbers that effect how the model works, and are generally chosen by comparing performance of the model on training data.
+
+7. Describe how backwards selection works.
+
+Answer: A model with all possible predictors is made to start with (full model) and at each stage, the predictor that lowers r2 the least when it is removed is found and taken out one by one until the most reasonable model is achieved.
+
+8. Describe how best subset selection works.
+
+Answer: Best subset selection (also known as exhaustive search) can be used to find the optimal model. At each size of model, all possible combinations of predictors are searched for the best model (i.e. the model with highest r2) of that size.
+
+The effort of this algorithm increases exponentially with the number of predictors
+
+9. It is estimated only 5% of model projects end up being deployed. What actions can you take to maximise the likelihood of your model being deployed?
+
+Answer: Ensure the model makes intuitive sense, there are no disallowed variables or variables that are acting as proxies for the disallowed variable.
+
+As a minimum the following should be recorded:
+
+The business context of the model
+Model design decisions and rationale including choice of algorithm, build population and target variable.
+Modelling decisions including a full audit trail of variable choices, including any exclusions.
+Final model explainability
+Model validation on a recent dataset
+Implementation instructions including any restrictions
+
+10. What metric could you use to confirm that the recent population is similar to the development population?
+
+Answer: Look at PSI.
+
+PSI < 0.1: no significant population shift, no changes required
+0.1 < PSI < 0.2: moderate population shift, change may be required
+PSI > 0.2: significant population shift, the model is probably no longer appropriate
+
+11. How is the Population Stability Index defined? What does this mean in words?
+
+Answer: PSI compares the distribution of a scoring variable (predicted probability) in scoring data set to a training data set that was used to develop the model. The idea is to check “How the current scoring is compared to the predicted probability from training data set”.
+
+12. Above what PSI value might we need to start to consider rebuilding or recalibrating the model
+
+Answer: when PSI is between 0.1 and 0.2 or above 0.2.
+
+13. What are the common errors that can crop up when implementing a model?
+
+Answer: Distribution change in variables.
+
+14. After performance monitoring, if we find that the discrimination is still satisfactory but the accuracy has deteriorated, what is the recommended action?
+
+Answer: This could mean that there has been a fundamental change in the population or a system implementation issue. In these cases, the root cause needs to be investigated before initiating any new model build project.
+
+15. Why is it important to have a unique model identifier for each model?
+
+Answer: Each model should have a unique model identifier (individual code) to ensure that each model can be uniquely identified.
+
+16. Why is it important to document the modelling approach rationale?
+
+Answer: The modelling approach rationale is one of the two main requirements of the pre-implementation documentation for models. This includes, the business context within which the model was developed, the selected technique and why it was chosen, the limitations of the model, and how the training and test dataset selection was made. Model inventory is also required.
