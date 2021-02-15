@@ -37,6 +37,11 @@ avocados_tidy <- avocados_tidy %>%
 ```
 
 ```{r}
+summary(avocados_tidy)
+```
+
+
+```{r}
 glimpse(avocados_tidy)
 ```
 
@@ -106,6 +111,8 @@ avocados_tidy %>%
 ```
 
 Average price was highest in Autumn.
+
+
 
 
 Building a predictive automated model with leaps package
