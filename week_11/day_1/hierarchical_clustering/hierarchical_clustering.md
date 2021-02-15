@@ -32,7 +32,7 @@ Dendrogram
 
 ![dendogram](dendogram.png)
 
-In this example, interpretation of the dendogram shows that the best choice of clusters is four, as the red lines indicate the maximum vertical distance covered between A and B.
+In this example, interpretation of the dendrogram shows that the best choice of clusters is four, as the red lines indicate the maximum vertical distance covered between A and B.
 
 Image from:- [analyticsvidhya.com](https://www.analyticsvidhya.com/blog/2016/11/an-introduction-to-clustering-and-different-methods-of-clustering/)
 
