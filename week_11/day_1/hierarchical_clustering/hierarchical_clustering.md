@@ -18,7 +18,7 @@ How does Hierarchical Clustering Work?
 ========================================================
 
 
-The algorithm starts off with all data points assigned to a cluster of their own. Then the algorithm works to minimise the number of clusters by merging those closest to each other using a distance measurement such as:
+In agglomerative hierachical clustering, the algorithm works to minimise the number of clusters by merging those closest to each other using a distance measurement such as:
 
 - Hamming distance for text 
 - Euclidean distance for numeric clusters 
