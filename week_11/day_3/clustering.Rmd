@@ -7,7 +7,8 @@ output: html_notebook
 library(tidyverse)
 library(janitor)
 mall_data <- read.csv("data/mall_customers.csv") %>% 
-  clean_names()
+  clean_names() %>% 
+  column_to_rownames("customer_id") 
 ```
 
 ```{r}
@@ -45,7 +46,7 @@ We are interested in creating a marketing campaign to target customers based on 
 mall_scale <- mall_data %>%
                 mutate_if(is.numeric, scale) %>% 
   #removing the non numerical column from the data as kmeans clustering can only work with numerical data for mathematical calulations. 
-  select(-c(customer_id, gender, age))
+  select(-c(gender, age))
 
 mall_scale
 ```
@@ -113,10 +114,73 @@ ggplot(clusterings, aes(x=k, y=tot.withinss)) +
 
 The plot shows that there is an elbow point at k = 5, where the rate of change of the sum of squares begins to decline. 
 
-
-Comment on the attributes on one or two of the clusters (maybe even give them a label if you like - like in section 4.1 of the ‘Segmentation & clustering intro’ lesson).
-
 ```{r}
-
+library(factoextra)
 ```
 
+```{r}
+fviz_nbclust(mall_scale, 
+             kmeans, 
+             method = "wss", 
+             nstart = 25)
+```
+
+I would still say the optimum number of clusters is 5.
+
+```{r}
+#Checking silhouette method
+library(cluster)
+
+#Chosen k=4 as an example 
+cluster_list_k4 <-  clusterings %>% 
+  unnest(augmented) %>%
+  filter(k == 4) %>%
+   select(.cluster) %>%
+    pull()
+  
+ 
+sil <- silhouette(as.numeric(cluster_list_k4), 
+                  dist(mall_scale))
+
+fviz_silhouette(sil)
+```
+
+```{r}
+fviz_nbclust(mall_scale, 
+             kmeans, 
+             method = "silhouette", 
+             nstart = 25)
+```
+The silhouette method confirms my original thoughts of k = 5 being the optimum number of clusters.
+
+
+```{r}
+ clusterings %>% 
+  unnest(cols = c(augmented)) %>%
+  filter(k <= 5) %>%
+ ggplot(aes(x = annual_income_k, y = spending_score_1_100)) +
+  geom_point(aes(color = .cluster)) + 
+  facet_wrap(~ k)
+```
+k = 5 definitely represents the clustering of the data points efficiently.
+
+```{r}
+#Looking at k = 5 specifically
+ clusterings %>% 
+  unnest(cols = c(augmented)) %>%
+  filter(k == 5) %>%
+ ggplot(aes(x = annual_income_k, y = spending_score_1_100, colour = .cluster, label = age)) +
+  geom_point(aes(color = .cluster)) +
+  geom_text(hjust = 0, vjust = - 0.5, size = 3)
+```
+
+```{r}
+ clusterings %>% 
+  unnest(augmented) %>%
+  filter(k == 5) %>%
+  group_by(.cluster) %>%
+  summarise(mean(annual_income_k), mean(spending_score_1_100))
+```
+
+
+Comment on the attributes on one or two of the clusters (maybe even give them a label if you like - like in section 4.1 of the ‘Segmentation & clustering intro’ lesson).
