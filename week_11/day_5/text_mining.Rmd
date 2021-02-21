@@ -1,0 +1,158 @@
+---
+title: "Text Mining"
+output: html_notebook
+---
+
+```{r}
+library(tidytext)
+library(tidyverse)
+library(janeaustenr)
+```
+
+Showing the top 20 words in Pride & Prejudice
+```{r}
+#generating a tibble for Pride & Prejudice book from Jane Austen package 
+book_pride <- tibble(
+    text = prideprejudice,
+    book = "pride_prejudice",
+    sentence = 1:length(prideprejudice)
+  ) %>%
+  unnest_tokens(word, text) 
+
+book_pride
+```
+
+```{r}
+top_20_pride <- book_pride %>% 
+  #ordering by the most popular words
+  count(word, sort = TRUE) %>% 
+#showing the top 20 words
+  slice_max(n, n = 20)
+
+
+top_20_pride
+```
+
+
+Showing the top 20 words in Sense & Sensibility
+
+```{r}
+#generating a tibble for Sense & Sensibility book from Jane Austen package 
+book_sense <- tibble(
+    text = sensesensibility,
+    book = "sense_sensibility",
+    sentence = 1:length(sensesensibility)
+  ) %>%
+  unnest_tokens(word, text) 
+
+book_sense
+```
+
+```{r}
+top_20_sense <- book_sense %>% 
+  #ordering by the most popular words
+  count(word, sort = TRUE) %>% 
+#showing the top 20 words
+  slice_max(n, n = 20)
+
+top_20_sense
+
+```
+
+```{r}
+#Finding the most common words in Pride & Prejudice, excluding stop words
+book_pride %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  slice_max(n, n = 20)
+```
+
+
+```{r}
+#Finding the most common words in Sense & Sensibility, excluding stop words
+book_sense %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  slice_max(n, n = 20)
+```
+
+Finding the most sentiment words in Pride & Prejudice
+
+```{r}
+pride_sentiment <- book_pride %>%
+  inner_join(get_sentiments(lexicon = "bing")) %>%
+  group_by(sentiment) %>% 
+  count(word, sort = TRUE) 
+
+pride_sentiment
+```
+
+
+#Generating a word cloud for Pride & Prejudice
+```{r}
+ggwordcloud(
+  words = pride_sentiment$word,
+  freq = pride_sentiment$n,
+  min.freq = 20
+)
+```
+
+
+#Adding sentiments to Sense & Sensibility
+```{r}
+sense_sentiment <- book_sense %>%
+  inner_join(get_sentiments(lexicon = "bing")) 
+
+sense_sentiment
+```
+Finding the most sentiment words in Sense & Sensibility
+```{r}
+sense_most_sentiment <- sense_sentiment %>%
+  group_by(sentiment) %>% 
+  count(word, sort = TRUE) 
+
+sense_most_sentiment
+```
+
+#Generating a word cloud for Sense & Sensibility
+```{r}
+ggwordcloud(
+  words = sense_most_sentiment$word,
+  freq = sense_most_sentiment$n,
+  min.freq = 20
+)
+```
+
+#Binding both books
+```{r}
+books <- bind_rows(book_pride, book_sense)
+```
+
+#Joining "afinn" sentiment to books
+```{r}
+books_sentiments <- books %>% 
+  inner_join(get_sentiments("afinn"))
+```
+
+
+#Creating a plot of the sentiment words both books Sense & Sensibility
+```{r}
+sentence_sentiments <- books_sentiments %>% 
+  group_by(book) %>%
+  mutate(
+    word_n = row_number()
+  ) %>%
+  mutate(
+    story_position = word_n/max(word_n) # all books on scale from 0 to 1
+  ) %>% 
+ggplot +
+  aes(x = story_position, y = value, colour = book) +
+  geom_smooth(se = FALSE) +
+  guides(colour = FALSE) +
+  facet_wrap(~book, nrow = 5)
+
+sentence_sentiments
+```
+
+
+
