@@ -135,7 +135,7 @@ books_sentiments <- books %>%
 ```
 
 
-#Creating a plot of the sentiment words both books Sense & Sensibility
+#Creating a plot for both books to show the overall picture of the moods of the books from start to finish.
 ```{r}
 sentence_sentiments <- books_sentiments %>% 
   group_by(book) %>%
