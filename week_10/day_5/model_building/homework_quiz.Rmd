@@ -20,7 +20,7 @@ Answer: The model with 0.43 for adjusted r-squared should be used as it is close
 
 4. I have a model with the following errors: RMSE error on test set: 10.3, RMSE error on training data: 10.4. Do you think this model is over-fitting?
 
-Answer: If the RMSE error on the test set is lower than the training set, it is likely that the model is over-fitting. It is expected that the RMSE error is lower when predicting on the training data as it is easier to make predictions on data that is used for training.
+Answer: No, since the error is similar on the test and on the train, the model is unlikely to be over-fitting.
 
 5. How does k-fold validation work?
 
